@@ -1,6 +1,6 @@
 FROM node:14
 
-WORKDIR /wemarket-api
+WORKDIR /app
 COPY package.json .
 RUN npm install
 COPY . .

@@ -15,7 +15,7 @@ services:
   app:
     depends_on:
       - mysqldb
-    build: ./wemarket-api
+    build: ./app
     restart: unless-stopped
     env_file: ./.env
     ports:
