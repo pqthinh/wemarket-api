@@ -1,20 +1,52 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const morgan = require("morgan");
 
 const app = express();
+const swaggerUi = require('swagger-ui-express');
+const swaggerJsdoc = require("swagger-jsdoc")
 
 var corsOptions = {
-  origin: "http://localhost:8081",
+  origin: "*",
 };
 
 app.use(cors(corsOptions));
 
-// parse requests of content-type - application/json
 app.use(express.json());
+app.use(express.urlencoded({extended:false}));
+app.use(morgan("dev"));
 
-// parse requests of content-type - application/x-www-form-urlencoded
-app.use(express.urlencoded({ extended: true }));
+const options = {
+  definition: {
+    openapi: "3.0.0",
+    info: {
+      title: "LogRocket Express API with Swagger",
+      version: "0.1.0",
+      description:
+        "This is a simple CRUD API application made with Express and documented with Swagger",
+      license: {
+        name: "MIT",
+        url: "https://spdx.org/licenses/MIT.html",
+      },
+      contact: {
+        name: "LogRocket",
+        url: "https://logrocket.com",
+        email: "info@email.com",
+      },
+    },
+    servers: [
+      {
+        url: "http://localhost:3000/books",
+      },
+    ],
+  },
+  apis: ["./routes/books.js"],
+};
+
+const specs = swaggerJsdoc(options);
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
 const db = require("./app/models");
 
@@ -33,6 +65,13 @@ require("./app/routes/turorial.routes")(app);
 
 // set port, listen for requests
 const PORT = process.env.NODE_DOCKER_PORT || 8080;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}.`);
-});
+
+//initialize the app.
+async function initialize(){    
+  app.listen(PORT);
+};
+
+initialize()
+  .finally(
+      () => console.log(`app started on port:${PORT}`)
+  );
