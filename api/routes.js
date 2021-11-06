@@ -1,6 +1,16 @@
 const express = require("express");
 const router = express.Router();
 
+/**
+ * @swagger
+ * /:
+ *   get:
+ *     description: hello page
+ *     parameters:
+ *     responses:
+ *       200:
+ *         description: Success
+ */
 router.get("/", (req, res) => {
   res.json({ message: "Home api of app" });
 });

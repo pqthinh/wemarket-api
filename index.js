@@ -7,6 +7,17 @@ const swaggerUi = require("swagger-ui-express");
 const swaggerJsdoc = require("swagger-jsdoc");
 const http = require("http");
 
+const options = {
+  swaggerDefinition: {
+    info: {
+      title: "Library API",
+      version: "1.0.0",
+    },
+  },
+  apis: ["./api/routes.js"],
+};
+const specs = swaggerJsdoc(options);
+
 let httpServer;
 function initialize() {
   return new Promise((resolve, reject) => {
@@ -21,20 +32,10 @@ function initialize() {
 
     app.use("/api", require("./api/routes"));
 
-    const options = {
-      swaggerDefinition: {
-        info: {
-          title: "Library API",
-          version: "1.0.0",
-        },
-      },
-      apis: ["./api/router.js"],
-    };
-
-    const specs = swaggerJsdoc(options);
     app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 
     httpServer = http.createServer(app);
+
     httpServer.listen(process.env.NODE_DOCKER_PORT || 4000, (err) => {
       if (err) {
         reject(err);
