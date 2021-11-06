@@ -24,7 +24,7 @@ const options = {
       version: "1.0.0",
     },
   },
-  apis: ["server.js", "app/routes/turorial.routes.js"],
+  apis: ["app/routes/turorial.routes.js"],
 };
 
 const specs = swaggerJsdoc(options);
@@ -35,23 +35,13 @@ const db = require("./app/models");
 
 db.sequelize.sync();
 
-/**
- * @swagger
- * /:
- *   get:
- *     description: Get all info app
- *     responses:
- *       200:
- *         description: Success
- *
- */
 app.get("/", (req, res) => {
   res.json({ message: "Welcome to wemaket application." });
 });
 
 require("./app/routes/turorial.routes")(app);
 
-const PORT = process.env.NODE_DOCKER_PORT || 8080;
+const PORT = process.env.NODE_DOCKER_PORT || 4000;
 async function initialize() {
   app.listen(PORT);
 }
