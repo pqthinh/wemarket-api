@@ -7,7 +7,7 @@ const Product = {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
       let sql, result;
-      sql = `select * from admin`;
+      sql = `select product.*, user.name, user.address, user.email, user.phone, user.avatar from user, product where product.status ="active" `;
       result = await conn.query(sql);
       await conn.commit();
       res.json(result[0]);

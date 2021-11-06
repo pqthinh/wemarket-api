@@ -64,59 +64,26 @@ const User = {
       await conn.beginTransaction();
       const body = req.body,
         uid = body.uid,
-        uname = body.username,
-        upass = body.password,
+        name = body.name,
+        address = body.address,
         email = body.email,
         phone = body.phone;
-      let sql, sqlCheckExist, result;
-      // Sua lai truy van
+
+      let result, response;
+
       if (!email || !phone) res;
-      sqlCheckExist = "select * from member where email=? or phone=?";
-
-      sql = `select * from member where name =? and password = ?`;
-
-      result = await conn.query(sql, [uid]);
+      let sqlCheckExist = "select * from user where email=? or phone=?";
+      result = await conn.query(sqlCheckExist, [uid]);
       await conn.commit();
-      response = false;
-      if (result.length == 1) response = true;
+
+      response = { status: false, message: "User existed false" };
+      if (result.length == 1) {
+        let sql = `insert into user set ? `;
+        await conn.query(sql, [uid, name, address, email, phone]);
+        await conn.commit();
+        response = { status: true, message: "success" };
+      }
       res.json({ response });
-    } catch (err) {
-      await conn.rollback();
-      next(err);
-    } finally {
-      await conn.release();
-    }
-  },
-  loginMember: async (req, res, next) => {
-    let conn;
-    try {
-      conn = await dbs.getConnection();
-      await conn.beginTransaction();
-      const body = req.body,
-        uname = body.username,
-        upassword = body.password;
-      if (!uname || !upassword) {
-        return res.status(400).json({
-          error: true,
-          message: "Username or Password required.",
-        });
-      }
-
-      let sql, result;
-      sql = `select * from member where username =? and password = ?`;
-      result = await conn.query(sql, [uname, upassword]);
-      await conn.commit();
-
-      if (result[0].length == 0) {
-        return res.status(401).json({
-          error: true,
-          message: "Username or Password is Wrong.",
-        });
-      }
-      // generate token
-      const token = utils.generateToken(result[0][0]);
-      const userObj = utils.getCleanUser(result[0][0]);
-      res.json({ user: userObj, token });
     } catch (err) {
       await conn.rollback();
       next(err);
@@ -168,7 +135,24 @@ const User = {
       await conn.release();
     }
   },
-  // Admin controller
+  getUserDetail: async (req, res, next) => {
+    const { uid } = req.body;
+    let conn;
+    try {
+      conn = await dbs.getConnection();
+      await conn.beginTransaction();
+      let sql, result;
+      sql = `select * from user where uid = ? `;
+      result = await conn.query(sql, [uid]);
+      await conn.commit();
+      res.json(result[0]);
+    } catch (err) {
+      await conn.rollback();
+      next(err);
+    } finally {
+      await conn.release();
+    }
+  },
   loginAdmin: async (req, res, next) => {
     // console.log(req)
     let conn;
@@ -176,25 +160,24 @@ const User = {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
       const body = req.body,
-        uname = body.username,
-        upassword = body.password;
-      if (!uname || !upassword) {
+        email = body.Email,
+        uPassword = body.password;
+      if (!email || !uPassword) {
         return res.status(400).json({
           error: true,
-          message: "Username or Password required.",
+          message: "Email or Password required.",
         });
       }
 
       let sql, result;
-      // username la duy nhat
-      sql = `select * from admin where username =?`;
-      result = await conn.query(sql, [uname]);
+      sql = `select * from admin where email =?`;
+      result = await conn.query(sql, [email]);
       await conn.commit();
 
       if (result[0].length == 0) {
         return res.status(401).json({
           error: true,
-          message: "Username is Wrong.",
+          message: "Email is wrong.",
         });
       } else if (result[0].length > 1) {
         return res.status(401).json({
@@ -204,7 +187,7 @@ const User = {
       } else {
         // check password
         const hash = result[0][0].password;
-        if (!bcrypt.compareSync(upassword, hash)) {
+        if (!bcrypt.compareSync(uPassword, hash)) {
           return res.status(401).json({
             error: true,
             message: "Password is Wrong.",
@@ -232,9 +215,9 @@ const User = {
       await conn.beginTransaction();
       const body = req.body,
         uname = body.name,
-        uusername = body.username,
-        upassword = body.password;
-      if (!uname || !upassword || !uusername) {
+        username = body.username,
+        uPassword = body.password;
+      if (!uname || !uPassword || !username) {
         return res.status(400).json({
           error: true,
           message: "Name, Username , Password required.",
@@ -243,7 +226,7 @@ const User = {
       // Check username
       let sql1, result1;
       sql1 = `select * from admin where username =? `;
-      result1 = await conn.query(sql1, [uusername]);
+      result1 = await conn.query(sql1, [username]);
       await conn.commit();
 
       if (result1[0].length > 0) {
@@ -252,15 +235,14 @@ const User = {
           message: "Username existed",
         });
       } else {
-        // Inser into table admin
         let sql, result;
 
-        // // Hash password
-        const myPlaintextPassword = upassword;
+        // Hash password
+        const myPlaintextPassword = uPassword;
         const hash = bcrypt.hashSync(myPlaintextPassword, saltRounds);
 
         sql = `insert into admin(name, username, password) value(?,?,?)`;
-        result = await conn.query(sql, [uname, uusername, hash]);
+        result = await conn.query(sql, [uname, username, hash]);
         await conn.commit();
       }
 
@@ -280,10 +262,10 @@ const User = {
       const body = req.body,
         uname = body.name,
         uid = req.params.id,
-        uusername = body.username,
-        upassword = body.password;
+        uUsername = body.username,
+        uPassword = body.password;
 
-      if (!uname & !upassword & !uusername) {
+      if (!uname & !uPassword & !uUsername) {
         return res.status(400).json({
           error: true,
           message: "Data not changed",
@@ -292,9 +274,9 @@ const User = {
       // Check username
       let sql, result;
       sql = `update admin set name=?, username =?, password=? where id = ?`;
-      const myPlaintextPassword = upassword;
+      const myPlaintextPassword = uPassword;
       const hash = bcrypt.hashSync(myPlaintextPassword, saltRounds);
-      result = await conn.query(sql, [uname, uusername, hash, uid]);
+      result = await conn.query(sql, [uname, uUsername, hash, uid]);
       await conn.commit();
 
       res.json({ status: "Update success" });
