@@ -43,4 +43,78 @@ module.exports = (app) => {
    */
   app.get("/admin/product", auth, product.adminGetAllPost);
   app.post("/product/list-by-category", product.ListActiveProductByCategory);
+  /**
+   * @swagger
+   * /admin/product:
+   *   get:
+   *     description: get all product for admin
+   *     parameters:
+   *        idCategory
+   *        limit
+   *        offset
+   *     responses:
+   *       200:
+   *         description: Success
+   *
+   */
+   app.post("/product/create",auth, product.Create);
+   /**
+   * @swagger
+   * /admin/product:
+   *   get:
+   *     description: get all product for admin
+   *     parameters: code, name, description, idCategory, price, idUser, address, quantity, lat, lng, images 
+   *        code
+   *        name
+   *        description
+   *        idCategory
+   *        price
+   *        idUser
+   *        address
+   *        quantity
+   *        lat
+   *        lng
+   *        images
+   *     responses:
+   *       200:
+   *         description: Success
+   *
+   */
+    app.post("/product/delete",auth, product.Delete);
+    /**
+   * @swagger
+   * /admin/product:
+   *   get:
+   *     description: get all product for admin
+   *     parameters:
+   *        idProduct
+   *     responses:
+   *       200:
+   *         description: Success
+   *
+   */
+     app.post("/product/update",auth, product.Update);
+     /**
+     * @swagger
+     * /admin/product:
+     *   get:
+     *     description: get all product for admin
+     *     parameters: code, name, description, idCategory, price, idUser, address, quantity, lat, lng, images 
+     *        idProduct
+     *        code
+     *        name
+     *        description
+     *        idCategory
+     *        price
+     *        idUser
+     *        address
+     *        quantity
+     *        lat
+     *        lng
+     *        images
+     *     responses:
+     *       200:
+     *         description: Success
+     *
+     */
 };
