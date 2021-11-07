@@ -1,5 +1,5 @@
 module.exports = (app) => {
-  const { auth } = require("../helpers/middleware");
+  const { authUser, authAdmin } = require("../helpers/middleware");
   /* product */
   const product = require("../mysql/product");
   /**
@@ -41,5 +41,19 @@ module.exports = (app) => {
    *         description: Success
    *
    */
-  app.get("/admin/product", auth, product.adminGetAllPost);
+  app.get("/admin/product", authAdmin, product.adminGetAllPost);
+
+  /**
+   * @swagger
+   * /user/product:
+   *   post:
+   *     description: get all product of user
+   *     parameters:
+   *      -id
+   *     responses:
+   *       200:
+   *         description: Success
+   *
+   */
+  app.post("/user/product", authUser, product.userGetProduct);
 };

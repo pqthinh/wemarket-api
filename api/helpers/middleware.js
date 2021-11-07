@@ -1,7 +1,23 @@
 const jwt = require("jsonwebtoken");
 const utils = require("./jwt");
+const admin = require("./authFirebase");
 
 module.exports = {
+  authUser: async (req, res, next) => {
+    const token = req.headers.authorization.split(" ")[1];
+    try {
+      const decodeValue = await admin.auth().verifyIdToken(token);
+      console.log(decodeValue);
+      if (decodeValue) {
+        req.user = decodeValue;
+        return next();
+      }
+      return res.status(401).send({ message: "Authorization token missing" });
+    } catch (e) {
+      console.log(e.code, "error");
+      return res.status(403).send({ message: "Authentication failed!" });
+    }
+  },
   checkToken: (req, res) => {
     var token =
       (req.header.authorization && req.headers.authorization.split(" ")[1]) ||
@@ -25,19 +41,20 @@ module.exports = {
       return res.json({ user: userObj, token });
     });
   },
-  auth: async (req, res, next) => {
+  authAdmin: async (req, res, next) => {
     try {
       const token = req.headers.authorization.split(" ")[1];
+      console.log(token, "token");
       if (!token) {
         res.status(401).send({ message: "Authorization token missing" });
         return;
       }
       const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
       req.userData = { uid: decodedToken.id, role: decodedToken.role };
-      // ruy van db xem có tồn tại email với role này không
 
       next();
     } catch (err) {
+      console.log(err, "error");
       res.status(403).send({ message: "Authentication failed!" });
       return;
     }
