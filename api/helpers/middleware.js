@@ -33,7 +33,9 @@ module.exports = {
         return;
       }
       const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-      req.userData = { userId: decodedToken.id, role: decodedToken.role };
+      req.userData = { uid: decodedToken.id, role: decodedToken.role };
+      // ruy van db xem có tồn tại email với role này không
+
       next();
     } catch (err) {
       res.status(403).send({ message: "Authentication failed!" });
