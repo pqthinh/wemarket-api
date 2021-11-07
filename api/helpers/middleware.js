@@ -14,7 +14,7 @@ module.exports = {
       }
       return res.status(401).send({ message: "Authorization token missing" });
     } catch (e) {
-      console.log(e.code, "error");
+      if (e.code == "auth/argument-error") return next();
       return res.status(403).send({ message: "Authentication failed!" });
     }
   },
