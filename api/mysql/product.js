@@ -92,6 +92,37 @@ const Product = {
       await conn.release();
     }
   },
+  ListActiveProductByCategory: async (req, res, next) => {
+    let conn,
+      { limit = 10, offset = 0 } = req.query;
+    let { idCategory } = req.body;
+    try {
+      conn = await dbs.getConnection();
+      await conn.beginTransaction();
+      let sql, result, count, total;
+      sql = `select product.*, user.username, user.address, user.email, user.phone, user.avatar, category.name, category.code from category, product, user where product.status ="active" AND user.id = product.userId AND product.categoryId = category.id AND category.id = ? limit ? offset ?`;
+      result = await conn.query(sql, [
+        idCategory.toString(),
+        Number(limit),
+        Number(offset > 0 ? offset : 0) * Number(limit),
+      ]);
+      count = `select count(*) as total from product where categoryId = ?`;
+      total = await conn.query(count, [idCategory.toString()]);
+      await conn.commit();
+
+      const response = {
+        total: total[0][0].total,
+        page: Number(offset) + 1,
+        result: result[0],
+      };
+      res.json(response);
+    } catch (err) {
+      await conn.rollback();
+      next(err);
+    } finally {
+      await conn.release();
+    }
+  },
 };
 
 module.exports = Product;

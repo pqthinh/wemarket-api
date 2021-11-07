@@ -42,4 +42,5 @@ module.exports = (app) => {
    *
    */
   app.get("/admin/product", auth, product.adminGetAllPost);
+  app.post("/product/list-by-category", product.ListActiveProductByCategory);
 };
