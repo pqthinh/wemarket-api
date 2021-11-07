@@ -1,12 +1,13 @@
 // module.exports = {
 //   poolConfig: {
-//     host: "remotemysql.com",
-//     user: "jK1zFOqFdO",
-//     password: "Ia9sf9ChxS",
-//     database: "jK1zFOqFdO",
+//     host: "sql6.freesqldatabase.com",
+//     user: "sql6449396",
+//     password: "Ae53Mx2XSS",
+//     database: "sql6449396",
 //     port: 3306,
 //   },
 // };
+
 module.exports = {
   poolConfig: {
     host: "localhost",
