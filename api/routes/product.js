@@ -8,6 +8,8 @@ module.exports = (app) => {
    *   get:
    *     description: get all product active product
    *     parameters:
+   *        limit:
+   *        offset:
    *     responses:
    *       200:
    *         description: Success
@@ -21,8 +23,7 @@ module.exports = (app) => {
    *   post:
    *     description: get all product active product
    *     parameters:
-   *        -idProduct:
-   *         idIUser:
+   *        idProduct:
    *     responses:
    *       200:
    *         description: Success
@@ -83,7 +84,18 @@ module.exports = (app) => {
    * /product/delete:
    *   post:
    *     description: delete product
-   *     parameters:
+   *     parameters: 
+   *        code
+   *        name
+   *        description
+   *        idCategory
+   *        price
+   *        uid
+   *        address
+   *        quantity
+   *        lat
+   *        lng
+   *        images: String
    *     responses:
    *       200:
    *         description: Success
@@ -98,17 +110,6 @@ module.exports = (app) => {
    *     description: get all product for admin
    *     parameters:
    *        idProduct
-   *        code
-   *        name
-   *        description
-   *        idCategory
-   *        price
-   *        idUser
-   *        address
-   *        quantity
-   *        lat
-   *        lng
-   *        images
    *     responses:
    *       200:
    *         description: Success
@@ -122,6 +123,17 @@ module.exports = (app) => {
    *   post:
    *     description: get all post of user
    *     parameters:
+     *        idProduct
+     *        code
+     *        name
+     *        description
+     *        idCategory
+     *        price
+     *        address
+     *        quantity
+     *        lat
+     *        lng
+     *        images: String
    *     responses:
    *       200:
    *         description: Success

@@ -287,6 +287,69 @@ const User = {
       await conn.release();
     }
   },
+  createUser:async (req, res, next) => {
+    let conn;
+    let {uid, username, address, email, phone, gender=null, birthday, avatar=null } = req.body;
+    try {
+      let createdAt = new Date();
+      conn = await dbs.getConnection();
+      await conn.beginTransaction();
+
+      let result, response;
+
+      if (!email || !phone) {
+        response = {error: true, message:"Email or phone is empty"}
+        res.json({ response });
+      }
+      else {
+        let sqlCheckExist = "select * from user where email=? or phone=?";
+        result = await conn.query(sqlCheckExist, [email, phone]);
+        await conn.commit();
+  
+        response = { status: false, message: "User existed false" };
+        if (result[0].length == 0) {
+          let sql = `insert into user set uid = ?, username = ?, address = ?, email = ?, phone = ?, gender =?, birthday = ?, avatar = ?, status = "pendding", createdAt = ?, updatedAt = ? `;
+          await conn.query(sql, [uid, username, address, email, phone, gender, birthday, avatar, createdAt, createdAt]);
+          await conn.commit();
+          response = { status: 1, message: "success" };
+        }
+        res.json({ response });
+      }
+      
+    } catch (err) {
+      await conn.rollback();
+      next(err);
+    } finally {
+      await conn.release();
+    }
+  },
+  adminActiveUser:async (req, res, next) => {
+    let { idUser } = req.body;
+    let updatedAt = new Date();
+    try {
+      conn = await dbs.getConnection();
+      await conn.beginTransaction();
+      let sql, result;
+      sql = `update user
+             set status = "active",updatedAt = ?
+             where user.id = ?`;
+      result = await conn.query(sql, [
+        updatedAt,
+        idUser,
+      ]);
+
+      const response = {
+        result: "success",
+        status : 1,
+      };
+      res.json(response);
+    } catch (err) {
+      await conn.rollback();
+      next(err);
+    } finally {
+      await conn.release();
+    }
+  },
 };
 
 module.exports = User;
