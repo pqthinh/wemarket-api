@@ -51,7 +51,6 @@ module.exports = {
       }
       const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
       req.userData = { uid: decodedToken.id, role: decodedToken.role };
-
       next();
     } catch (err) {
       console.log(err, "error");
