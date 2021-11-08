@@ -36,7 +36,7 @@ function initialize() {
 
     httpServer = http.createServer(app);
 
-    httpServer.listen(process.env.NODE_DOCKER_PORT || 4000, (err) => {
+    httpServer.listen(process.env.PORT || 8080, (err) => {
       if (err) {
         reject(err);
         return;
