@@ -8,8 +8,10 @@ module.exports = (app) => {
    *   get:
    *     description: get all product active product
    *     parameters:
-   *        limit:
-   *        offset:
+   *      - name: limit
+   *        in: query
+   *      - name: offset
+   *        in: query
    *     responses:
    *       200:
    *         description: Success
@@ -23,11 +25,13 @@ module.exports = (app) => {
    *   post:
    *     description: get all product active product
    *     parameters:
-   *        idProduct:
+   *       - name : idProduct
+   *         in : body
+   *         type : integer
+   *
    *     responses:
    *       200:
    *         description: Success
-   *
    */
   app.post("/common/product", product.getProductDetail);
 
@@ -50,9 +54,12 @@ module.exports = (app) => {
    *   get:
    *     description: get all product /product/list-by-category
    *     parameters:
-   *        idCategory
-   *        limit
-   *        offset
+   *      - name: idCategory
+   *        in: query
+   *      - name: limit
+   *        in: query
+   *      - name: offset
+   *        in: query
    *     responses:
    *       200:
    *         description: Success
@@ -69,9 +76,17 @@ module.exports = (app) => {
    *   post:
    *     description: get all product for admin
    *     parameters:
-   *        idCategory
-   *        limit
-   *        offset
+   *        - name: code
+   *        - name: name
+   *        - name: description
+   *        - name: idCategory
+   *        - name: price
+   *        - name: uid
+   *        - name: address
+   *        - name: quantity
+   *        - name: lat
+   *        - name: lng
+   *        - name: images
    *     responses:
    *       200:
    *         description: Success
@@ -84,18 +99,8 @@ module.exports = (app) => {
    * /product/delete:
    *   post:
    *     description: delete product
-   *     parameters: 
-   *        code
-   *        name
-   *        description
-   *        idCategory
-   *        price
-   *        uid
-   *        address
-   *        quantity
-   *        lat
-   *        lng
-   *        images: String
+   *     parameters:
+   *       - name: idProduct
    *     responses:
    *       200:
    *         description: Success
@@ -109,7 +114,17 @@ module.exports = (app) => {
    *   post:
    *     description: get all product for admin
    *     parameters:
-   *        idProduct
+   *        - name: code
+   *        - name: name
+   *        - name: description
+   *        - name: idCategory
+   *        - name: price
+   *        - name: uid
+   *        - name: address
+   *        - name: quantity
+   *        - name: lat
+   *        - name: lng
+   *        - name: images
    *     responses:
    *       200:
    *         description: Success
@@ -123,17 +138,12 @@ module.exports = (app) => {
    *   post:
    *     description: get all post of user
    *     parameters:
-     *        idProduct
-     *        code
-     *        name
-     *        description
-     *        idCategory
-     *        price
-     *        address
-     *        quantity
-     *        lat
-     *        lng
-     *        images: String
+   *      - name: idUser
+   *        in: query
+   *      - name: limit
+   *        in: query
+   *      - name: offset
+   *        in: query
    *     responses:
    *       200:
    *         description: Success

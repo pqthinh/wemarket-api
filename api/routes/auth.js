@@ -9,29 +9,45 @@ module.exports = (app) => {
    *   get:
    *     description: get info user
    *     parameters:
+   *        - name: uid
+   *          in : body
    *     responses:
    *       200:
    *         description: Success
    */
   app.get("/user/info", user.getUserDetail);
-  app.post("/user/create", user.createUser);
+
   /**
    * @swagger
    * /user/create:
-   *   get:
-   *     description: create user 
+   *   post:
+   *     description: create user
    *     parameters:
-   *          uid
-   *          username
-   *          address
-   *          email
-   *          phone
-   *          gender
-   *          birthday
-   *          avatar
+   *       - name: uid
+   *       - name: username
+   *       - name: address
+   *       - name: email
+   *       - name: phone
+   *       - name: gender
+   *       - name: birthday
+   *       - name: avatar
    *     responses:
    *       200:
    *         description: Success
    */
-  app.get("/admin/active-user",authAdmin, user.adminActiveUser);
+  app.post("/user/create", user.createUser);
+
+  /**
+   * @swagger
+   * /admin/active-user:
+   *   post:
+   *     description: active user
+   *     parameters:
+   *       - name: uid
+   *         in : body
+   *     responses:
+   *       200:
+   *         description: Success
+   */
+  app.get("/admin/active-user", authAdmin, user.adminActiveUser);
 };

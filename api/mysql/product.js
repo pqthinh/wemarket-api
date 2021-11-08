@@ -13,7 +13,7 @@ const Product = {
         Number(limit),
         Number(offset > 0 ? offset : 0) * Number(limit),
       ]);
-      sqlCount = `select count(*) as total from product where status ="active" and product.deletedAt is null`
+      sqlCount = `select count(*) as total from product where status ="active" and product.deletedAt is null`;
       const total = await conn.query(sqlCount);
       await conn.commit();
 
@@ -93,7 +93,7 @@ const Product = {
       await conn.release();
     }
   },
-  ListActiveProductByCategory: async (req, res, next) => {
+  listActiveProductByCategory: async (req, res, next) => {
     let conn,
       { limit = 10, offset = 0 } = req.query;
     let { idCategory } = req.body;
@@ -124,9 +124,21 @@ const Product = {
       await conn.release();
     }
   },
-  Create: async (req, res, next) => {
-    let conn
-    let {code, name, description, idCategory, price, uid, address, quantity, lat = null, lng=null, images="https://cdn.mobilecity.vn/mobilecity-vn/images/2021/07/iphone-11-pro-max-mat-truoc-sau.jpg,https://cdn.mobilecity.vn/mobilecity-vn/images/2021/07/iphone-11-pro-max-mat-truoc.jpg" } = req.body;
+  createProduct: async (req, res, next) => {
+    let conn;
+    let {
+      code,
+      name,
+      description,
+      idCategory,
+      price,
+      uid,
+      address,
+      quantity,
+      lat = null,
+      lng = null,
+      images = "https://cdn.mobilecity.vn/mobilecity-vn/images/2021/07/iphone-11-pro-max-mat-truoc-sau.jpg,https://cdn.mobilecity.vn/mobilecity-vn/images/2021/07/iphone-11-pro-max-mat-truoc.jpg",
+    } = req.body;
     let createdAt = new Date();
     try {
       conn = await dbs.getConnection();
@@ -136,11 +148,23 @@ const Product = {
 
       VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?)`;
       result = await conn.query(sql, [
-        code, name, description, Number(idCategory), Number(price), uid, createdAt, createdAt, address, Number(quantity),lat, lng, images
+        code,
+        name,
+        description,
+        Number(idCategory),
+        Number(price),
+        uid,
+        createdAt,
+        createdAt,
+        address,
+        Number(quantity),
+        lat,
+        lng,
+        images,
       ]);
       // sql1 = `select * from product where uid = ? AND createdAt = ?`
       // result = await conn.query(sql1, [
-      //   Number(idUser), createdAt, 
+      //   Number(idUser), createdAt,
       // ]);
       await conn.commit();
 
@@ -156,9 +180,21 @@ const Product = {
       await conn.release();
     }
   },
-  Update: async (req, res, next) => {
-    let conn
-    let {idProduct, code, name, description, idCategory, price, address, quantity, lat, lng, images } = req.body;
+  updateProduct: async (req, res, next) => {
+    let conn;
+    let {
+      idProduct,
+      code,
+      name,
+      description,
+      idCategory,
+      price,
+      address,
+      quantity,
+      lat,
+      lng,
+      images,
+    } = req.body;
     let updatedAt = new Date();
     try {
       conn = await dbs.getConnection();
@@ -168,12 +204,23 @@ const Product = {
              set code = ?, name = ?, description = ?, categoryId = ?, price =?, address = ?, quantity = ?, lat = ?, lng = ?, images = ?, updatedAt = ?
               where id = ?`;
       result = await conn.query(sql, [
-        code, name, description, Number(idCategory), Number(price), address, Number(quantity),lat, lng, images, updatedAt, idProduct
+        code,
+        name,
+        description,
+        Number(idCategory),
+        Number(price),
+        address,
+        Number(quantity),
+        lat,
+        lng,
+        images,
+        updatedAt,
+        idProduct,
       ]);
 
       // sql1 = `select * from product where uid = ? AND createdAt = ?`
       // result = await conn.query(sql1, [
-      //   Number(idUser), createdAt, 
+      //   Number(idUser), createdAt,
       // ]);
       await conn.commit();
 
@@ -189,7 +236,7 @@ const Product = {
       await conn.release();
     }
   },
-  Delete: async (req, res, next) => {
+  deleteProduct: async (req, res, next) => {
     let { idProduct } = req.body;
     let deletedAt = new Date();
     try {
@@ -199,15 +246,11 @@ const Product = {
       sql = `update product 
              set deletedAt = ?, updatedAt = ?
              where product.id = ?`;
-      result = await conn.query(sql, [
-        deletedAt,
-        deletedAt,
-        idProduct,
-      ]);
+      result = await conn.query(sql, [deletedAt, deletedAt, idProduct]);
 
       const response = {
         result: "success",
-        status : 1,
+        status: 1,
       };
       res.json(response);
     } catch (err) {
@@ -217,7 +260,7 @@ const Product = {
       await conn.release();
     }
   },
-  adminActivePost:async (req, res, next) => {
+  adminActivePost: async (req, res, next) => {
     let { idProduct, idAdmin } = req.body;
     let updatedAt = new Date();
     try {
@@ -227,15 +270,11 @@ const Product = {
       sql = `update product 
              set status = "active",admin_id= ?, updatedAt = ?
              where product.id = ?`;
-      result = await conn.query(sql, [
-        idAdmin,
-        updatedAt,
-        idProduct,
-      ]);
+      result = await conn.query(sql, [idAdmin, updatedAt, idProduct]);
 
       const response = {
         result: "success",
-        status : 1,
+        status: 1,
       };
       res.json(response);
     } catch (err) {
