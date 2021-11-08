@@ -13,7 +13,7 @@ const Product = {
         Number(limit),
         Number(offset > 0 ? offset : 0) * Number(limit),
       ]);
-      sqlCount = `select count(*) as total from product where status ="active" and product.deletedAt is null`
+      sqlCount = `select count(*) as total from product where status ="active" and product.deletedAt is null`;
       const total = await conn.query(sqlCount);
       await conn.commit();
 
@@ -63,7 +63,6 @@ const Product = {
       await conn.release();
     }
   },
-
   adminGetAllPost: async (req, res, next) => {
     let conn,
       { limit = 10, offset = 0 } = req.query;
@@ -93,7 +92,7 @@ const Product = {
       await conn.release();
     }
   },
-  ListActiveProductByCategory: async (req, res, next) => {
+  listActiveProductByCategory: async (req, res, next) => {
     let conn,
       { limit = 10, offset = 0 } = req.query;
     let { idCategory } = req.body;
@@ -124,9 +123,21 @@ const Product = {
       await conn.release();
     }
   },
-  Create: async (req, res, next) => {
-    let conn
-    let {code, name, description, idCategory, price, idUser, address, quantity, lat = null, lng=null, images="https://cdn.mobilecity.vn/mobilecity-vn/images/2021/07/iphone-11-pro-max-mat-truoc-sau.jpg,https://cdn.mobilecity.vn/mobilecity-vn/images/2021/07/iphone-11-pro-max-mat-truoc.jpg" } = req.body;
+  createProduct: async (req, res, next) => {
+    let conn;
+    let {
+      code,
+      name,
+      description,
+      idCategory,
+      price,
+      idUser,
+      address,
+      quantity,
+      lat = null,
+      lng = null,
+      images = "https://cdn.mobilecity.vn/mobilecity-vn/images/2021/07/iphone-11-pro-max-mat-truoc-sau.jpg,https://cdn.mobilecity.vn/mobilecity-vn/images/2021/07/iphone-11-pro-max-mat-truoc.jpg",
+    } = req.body;
     let createdAt = new Date();
     try {
       conn = await dbs.getConnection();
@@ -136,11 +147,23 @@ const Product = {
 
       VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?)`;
       result = await conn.query(sql, [
-        code, name, description, Number(idCategory), Number(price), Number(idUser), createdAt, createdAt, address, Number(quantity),lat, lng, images
+        code,
+        name,
+        description,
+        Number(idCategory),
+        Number(price),
+        Number(idUser),
+        createdAt,
+        createdAt,
+        address,
+        Number(quantity),
+        lat,
+        lng,
+        images,
       ]);
       // sql1 = `select * from product where userId = ? AND createdAt = ?`
       // result = await conn.query(sql1, [
-      //   Number(idUser), createdAt, 
+      //   Number(idUser), createdAt,
       // ]);
       await conn.commit();
 
@@ -156,9 +179,22 @@ const Product = {
       await conn.release();
     }
   },
-  Update: async (req, res, next) => {
-    let conn
-    let {idProduct, code, name, description, idCategory, price, idUser, address, quantity, lat, lng, images } = req.body;
+  updateProduct: async (req, res, next) => {
+    let conn;
+    let {
+      idProduct,
+      code,
+      name,
+      description,
+      idCategory,
+      price,
+      idUser,
+      address,
+      quantity,
+      lat,
+      lng,
+      images,
+    } = req.body;
     let updatedAt = new Date();
     try {
       conn = await dbs.getConnection();
@@ -168,13 +204,21 @@ const Product = {
              set code = ?, name = ?, description = ?, categoryId = ?, price =?, userId = ?, address = ?, quantity = ?, lat = ?, lng = ?, images = ?, updatedAt = ?
               where id = ?`;
       result = await conn.query(sql, [
-        code, name, description, Number(idCategory), Number(price), Number(idUser), address, Number(quantity),lat, lng, images, updatedAt, idProduct
+        code,
+        name,
+        description,
+        Number(idCategory),
+        Number(price),
+        Number(idUser),
+        address,
+        Number(quantity),
+        lat,
+        lng,
+        images,
+        updatedAt,
+        idProduct,
       ]);
 
-      // sql1 = `select * from product where userId = ? AND createdAt = ?`
-      // result = await conn.query(sql1, [
-      //   Number(idUser), createdAt, 
-      // ]);
       await conn.commit();
 
       const response = {
@@ -189,25 +233,21 @@ const Product = {
       await conn.release();
     }
   },
-  Delete: async (req, res, next) => {
+  deleteProduct: async (req, res, next) => {
     let { idProduct } = req.body;
     let deletedAt = new Date();
     try {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
-      let sql, result, count, total;
+      let sql;
       sql = `update product 
              set deletedAt = ?, updatedAt = ?
              where product.id = ?`;
-      result = await conn.query(sql, [
-        deletedAt,
-        deletedAt,
-        idProduct,
-      ]);
+      result = await conn.query(sql, [deletedAt, deletedAt, idProduct]);
 
       const response = {
         result: "success",
-        status : 1,
+        status: 1,
       };
       res.json(response);
     } catch (err) {
@@ -217,24 +257,51 @@ const Product = {
       await conn.release();
     }
   },
-  adminActivePost:async (req, res, next) => {
+  adminActivePost: async (req, res, next) => {
     let { idProduct } = req.body;
     let updatedAt = new Date();
     try {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
-      let sql, result, count, total;
+      let sql;
       sql = `update product 
              set status = "active", updatedAt = ?
              where product.id = ?`;
-      result = await conn.query(sql, [
-        updatedAt,
-        idProduct,
-      ]);
+      result = await conn.query(sql, [updatedAt, idProduct]);
 
       const response = {
         result: "success",
-        status : 1,
+        status: 1,
+      };
+      res.json(response);
+    } catch (err) {
+      await conn.rollback();
+      next(err);
+    } finally {
+      await conn.release();
+    }
+  },
+  getAllPostOfUser: async (req, res, next) => {
+    let conn,
+      { limit = 10, offset = 0, idUser } = req.query;
+    try {
+      conn = await dbs.getConnection();
+      await conn.beginTransaction();
+      let sql, result;
+      sql = `select product.*, user.username, user.address, user.email, user.phone, user.avatar from user, product where product.userId=? limit ? offset ?`;
+      result = await conn.query(sql, [
+        idUser,
+        Number(limit),
+        Number(offset > 0 ? offset : 0) * Number(limit),
+      ]);
+      sqlCount = `select count(*) as total from product`;
+      const total = await conn.query(sqlCount);
+      await conn.commit();
+
+      const response = {
+        total: total[0][0].total,
+        page: Number(offset) + 1,
+        result: result[0],
       };
       res.json(response);
     } catch (err) {

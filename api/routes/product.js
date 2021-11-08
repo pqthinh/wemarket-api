@@ -1,5 +1,5 @@
 module.exports = (app) => {
-  const { auth } = require("../helpers/middleware");
+  const { authUser, authAdmin } = require("../helpers/middleware");
   /* product */
   const product = require("../mysql/product");
   /**
@@ -41,12 +41,31 @@ module.exports = (app) => {
    *         description: Success
    *
    */
-  app.get("/admin/product", auth, product.adminGetAllPost);
-  app.post("/product/list-by-category", product.ListActiveProductByCategory);
+  app.get("/admin/product", authAdmin, product.adminGetAllPost);
+
   /**
    * @swagger
-   * /admin/product:
+   * /common/product/list-by-category:
    *   get:
+   *     description: get all product /product/list-by-category
+   *     parameters:
+   *        idCategory
+   *        limit
+   *        offset
+   *     responses:
+   *       200:
+   *         description: Success
+   *
+   */
+  app.post(
+    "/common/product/list-by-category",
+    product.listActiveProductByCategory
+  );
+
+  /**
+   * @swagger
+   * /product/create:
+   *   post:
    *     description: get all product for admin
    *     parameters:
    *        idCategory
@@ -57,13 +76,28 @@ module.exports = (app) => {
    *         description: Success
    *
    */
-   app.post("/product/create",auth, product.Create);
-   /**
+  app.post("/product/create", authUser, product.createProduct);
+
+  /**
    * @swagger
-   * /admin/product:
-   *   get:
+   * /product/delete:
+   *   post:
+   *     description: delete product
+   *     parameters:
+   *     responses:
+   *       200:
+   *         description: Success
+   *
+   */
+  app.post("/product/delete", authAdmin, product.deleteProduct);
+
+  /**
+   * @swagger
+   * /product/update:
+   *   post:
    *     description: get all product for admin
-   *     parameters: code, name, description, idCategory, price, idUser, address, quantity, lat, lng, images 
+   *     parameters:
+   *        idProduct
    *        code
    *        name
    *        description
@@ -80,41 +114,18 @@ module.exports = (app) => {
    *         description: Success
    *
    */
-    app.post("/product/delete",auth, product.Delete);
-    /**
+  app.post("/product/update", authUser, product.updateProduct);
+
+  /**
    * @swagger
-   * /admin/product:
-   *   get:
-   *     description: get all product for admin
+   * /user/product:
+   *   post:
+   *     description: get all post of user
    *     parameters:
-   *        idProduct
    *     responses:
    *       200:
    *         description: Success
    *
    */
-     app.post("/product/update",auth, product.Update);
-     /**
-     * @swagger
-     * /admin/product:
-     *   get:
-     *     description: get all product for admin
-     *     parameters: code, name, description, idCategory, price, idUser, address, quantity, lat, lng, images 
-     *        idProduct
-     *        code
-     *        name
-     *        description
-     *        idCategory
-     *        price
-     *        idUser
-     *        address
-     *        quantity
-     *        lat
-     *        lng
-     *        images
-     *     responses:
-     *       200:
-     *         description: Success
-     *
-     */
+  app.post("/user/product", authUser, product.getAllPostOfUser);
 };

@@ -1,47 +1,31 @@
--- phpMyAdmin SQL Dump
--- version 5.0.4
--- https://www.phpmyadmin.net/
---
--- Host: 127.0.0.1
--- Generation Time: Nov 07, 2021 at 08:25 AM
--- Server version: 10.4.17-MariaDB
--- PHP Version: 7.4.15
-
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
 
+DROP TABLE IF EXISTS `admin`;
+DROP TABLE IF EXISTS `category`;
+DROP TABLE IF EXISTS `comment`;
+DROP TABLE IF EXISTS `boolmark`;
+DROP TABLE IF EXISTS `image`;
+DROP TABLE IF EXISTS `notify`;
+DROP TABLE IF EXISTS `order`;
+DROP TABLE IF EXISTS `product`;
+DROP TABLE IF EXISTS `user`;
 
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
 
---
--- Database: `wemarket`
---
-
--- --------------------------------------------------------
-
---
--- Table structure for table `admin`
---
-
-CREATE TABLE  IF NOT EXIST`admin` (
+CREATE TABLE IF NOT EXIST `admin` (
   `id` int(11) NOT NULL,
-  `name` varchar(45) NOT NULL,
+  `username` varchar(45) NOT NULL,
   `address` varchar(45) NOT NULL,
   `phone` varchar(45) NOT NULL,
   `email` varchar(45) NOT NULL,
   `avatar` varchar(45) DEFAULT NULL,
   `password` varchar(45) NOT NULL,
-  `displayName` varchar(45) NOT NULL,
-  `sexId` int(11) NOT NULL,
+  `gender` varchar(20) NOT NULL,
   `birthday` datetime NOT NULL,
   `createdAt` datetime NOT NULL,
   `updatedAt` datetime NOT NULL,
   `detetedAt` datetime DEFAULT NULL,
-  `rowId` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
@@ -60,7 +44,7 @@ INSERT INTO `admin` (`id`, `name`, `address`, `phone`, `email`, `avatar`, `passw
 -- Table structure for table `category`
 --
 
-CREATE TABLE  IF NOT EXIST`category` (
+CREATE TABLE IF NOT EXIST  `category` (
   `id` int(11) NOT NULL,
   `code` varchar(45) COLLATE utf8_unicode_ci NOT NULL,
   `name` varchar(45) COLLATE utf8_unicode_ci NOT NULL,
@@ -91,7 +75,7 @@ INSERT INTO `category` (`id`, `code`, `name`, `description`, `statusId`, `create
 -- Table structure for table `comment`
 --
 
-CREATE TABLE  IF NOT EXIST`comment` (
+CREATE TABLE IF NOT EXIST `comment` (
   `id` int(11) NOT NULL,
   `title` varchar(45) NOT NULL,
   `content` varchar(45) NOT NULL,
@@ -108,10 +92,10 @@ CREATE TABLE  IF NOT EXIST`comment` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `favoriteproduct`
+-- Table structure for table `product`
 --
 
-CREATE TABLE  IF NOT EXIST`favoriteproduct` (
+CREATE TABLE IF NOT EXIST `boolmark` (
   `id` int(11) NOT NULL,
   `userId` int(11) NOT NULL,
   `productId` int(11) NOT NULL
@@ -123,7 +107,7 @@ CREATE TABLE  IF NOT EXIST`favoriteproduct` (
 -- Table structure for table `image`
 --
 
-CREATE TABLE  IF NOT EXIST`image` (
+CREATE TABLE IF NOT EXIST `image` (
   `id` int(11) NOT NULL,
   `name` varchar(45) NOT NULL,
   `productId` int(11) NOT NULL,
@@ -142,7 +126,7 @@ CREATE TABLE  IF NOT EXIST`image` (
 -- Table structure for table `notify`
 --
 
-CREATE TABLE  IF NOT EXIST`notify` (
+CREATE TABLE IF NOT EXIST `notify` (
   `id` int(11) NOT NULL,
   `userId` int(11) NOT NULL,
   `adminId` int(11) NOT NULL,
@@ -159,7 +143,7 @@ CREATE TABLE  IF NOT EXIST`notify` (
 -- Table structure for table `order`
 --
 
-CREATE TABLE  IF NOT EXIST`order` (
+CREATE TABLE IF NOT EXIST `order` (
   `id` int(11) NOT NULL,
   `id_user` int(11) NOT NULL,
   `id_product` int(11) NOT NULL,
@@ -172,7 +156,7 @@ CREATE TABLE  IF NOT EXIST`order` (
 -- Table structure for table `product`
 --
 
-CREATE TABLE  IF NOT EXIST`product` (
+CREATE TABLE IF NOT EXIST `product` (
   `id` int(11) NOT NULL,
   `code` varchar(255) NOT NULL,
   `name` varchar(255) NOT NULL,
@@ -225,13 +209,11 @@ INSERT INTO `product` (`id`, `code`, `name`, `description`, `categoryId`, `price
 -- Table structure for table `user`
 --
 
-CREATE TABLE  IF NOT EXIST`user` (
+CREATE TABLE IF NOT EXIST  `user` (
   `id` int(11) NOT NULL,
   `uid` varchar(20) DEFAULT NULL,
   `username` varchar(45) NOT NULL,
   `address` varchar(45) NOT NULL,
-  `lat` double NOT NULL,
-  `lng` double NOT NULL,
   `email` varchar(45) NOT NULL,
   `phone` varchar(45) NOT NULL,
   `status` varchar(20) NOT NULL DEFAULT 'InActive',
@@ -239,7 +221,7 @@ CREATE TABLE  IF NOT EXIST`user` (
   `birthday` varchar(45) NOT NULL,
   `avatar` varchar(200) DEFAULT 'https://firebasestorage.googleapis.com/v0/b/wemarket-a8540.appspot.com/o/avatar.jpg?alt=media&token=5adcd27c-dc51-4361-8cde-558e54a5b3e6',
   `createdAt` datetime NOT NULL DEFAULT current_timestamp(),
-  `updatedAt` datetime NOT NULL,
+  `updatedAt` datetime DEFAULT NULL,
   `deletedAt` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -247,11 +229,11 @@ CREATE TABLE  IF NOT EXIST`user` (
 -- Dumping data for table `user`
 --
 
-INSERT INTO `user` (`id`, `uid`, `username`, `address`, `lat`, `lng`, `email`, `phone`, `status`, `gender`, `birthday`, `avatar`, `createdAt`, `updatedAt`, `deletedAt`) VALUES
-(1, 'ZVWjy74rfrUYvWMpH2Ai', 'vo thi van', 'ha tinh', 0, 0, 'meo@gmail', '123', '0', '2', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(2, 'MF2Tt0kqz5PbwEbfOGUY', 'dao minh hoan', 'hai duong', 0, 0, 'meo@gmail.com', '123', '0', '2', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(4, 'v7Sbxgu4J5UlJd3ic2jR', 'vu quynh trang', 'thai binh', 0, 0, 'meo@', '123', '0', '2', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(5, 'Pi4vXXUZLjT4py1X2mKM', 'nguyen hoai thu', 'thai binh', 0, 0, 'meo@', '123', '0', '2', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '0000-00-00 00:00:00');
+INSERT INTO `user` (`id`, `uid`, `username`, `address`,  `email`, `phone`, `status`, `gender`, `birthday`, `avatar`, `createdAt`, `updatedAt`, `deletedAt`) VALUES
+(1, 'ZVWjy74rfrUYvWMpH2Ai', 'vo thi van', 'ha tinh', 'meo@gmail', '123', '0', '2', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+(2, 'MF2Tt0kqz5PbwEbfOGUY', 'dao minh hoan', 'hai duong', 'meo@gmail.com', '123', '0', '2', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+(4, 'v7Sbxgu4J5UlJd3ic2jR', 'vu quynh trang', 'thai binh', 'meo@', '123', '0', '2', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+(5, 'Pi4vXXUZLjT4py1X2mKM', 'nguyen hoai thu', 'thai binh', 'meo@', '123', '0', '2', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '0000-00-00 00:00:00');
 
 --
 -- Indexes for dumped tables
@@ -277,9 +259,9 @@ ALTER TABLE `comment`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `favoriteproduct`
+-- Indexes for table `product`
 --
-ALTER TABLE `favoriteproduct`
+ALTER TABLE `product`
   ADD PRIMARY KEY (`id`);
 
 --
