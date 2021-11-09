@@ -187,7 +187,7 @@ const Product = {
       code,
       name,
       description,
-      idCategory,
+      categoryId,
       price,
       address,
       quantity,
@@ -207,7 +207,7 @@ const Product = {
         code,
         name,
         description,
-        Number(idCategory),
+        Number(categoryId),
         Number(price),
         address,
         Number(quantity),
@@ -291,7 +291,7 @@ const Product = {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
       let sql, result;
-      sql = `select product.*, user.username, user.address, user.email, user.phone, user.avatar from user, product where product.userId=? limit ? offset ?`;
+      sql = `select product.*, user.username, user.address, user.email, user.phone, user.avatar from user, product where product.uid=? limit ? offset ?`;
       result = await conn.query(sql, [
         idUser,
         Number(limit),

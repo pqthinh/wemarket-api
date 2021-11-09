@@ -114,10 +114,11 @@ module.exports = (app) => {
    *   post:
    *     description: get all product for admin
    *     parameters:
+   *        - name: idProduct
    *        - name: code
    *        - name: name
    *        - name: description
-   *        - name: idCategory
+   *        - name: categoryId
    *        - name: price
    *        - name: uid
    *        - name: address
