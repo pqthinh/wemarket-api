@@ -76,16 +76,17 @@ module.exports = (app) => {
    *   post:
    *     description: get all product for admin
    *     parameters:
-   *        - name: code
    *        - name: name
    *        - name: description
-   *        - name: idCategory
+   *        - name: categoryId
    *        - name: price
    *        - name: uid
    *        - name: address
    *        - name: quantity
    *        - name: lat
    *        - name: lng
+   *        - name: image
+   *        - name: tag
    *        - name: images
    *     responses:
    *       200:
@@ -115,7 +116,6 @@ module.exports = (app) => {
    *     description: get all product for admin
    *     parameters:
    *        - name: idProduct
-   *        - name: code
    *        - name: name
    *        - name: description
    *        - name: categoryId
@@ -125,6 +125,8 @@ module.exports = (app) => {
    *        - name: quantity
    *        - name: lat
    *        - name: lng
+   *        - name: image
+   *        - name: tag
    *        - name: images
    *     responses:
    *       200:
@@ -139,7 +141,7 @@ module.exports = (app) => {
    *   post:
    *     description: get all post of user
    *     parameters:
-   *      - name: idUser
+   *      - name: uid
    *        in: query
    *      - name: limit
    *        in: query
