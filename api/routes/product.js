@@ -21,19 +21,19 @@ module.exports = (app) => {
 
   /**
    * @swagger
-   * /common/product:
-   *   post:
-   *     description: get all product active product
+   * /common/product/{idProduct}:
+   *   get:
+   *     description: get product detail
    *     parameters:
    *       - name : idProduct
-   *         in : body
+   *         in : params
    *         type : integer
    *
    *     responses:
    *       200:
    *         description: Success
    */
-  app.post("/common/product", product.getProductDetail);
+  app.get("/common/product/:idProduct", product.getProductDetail);
 
   /**
    * @swagger
@@ -74,25 +74,26 @@ module.exports = (app) => {
    * @swagger
    * /product/create:
    *   post:
-   *     description: get all product for admin
+   *     description: Create product
    *     parameters:
-   *        - name: code
    *        - name: name
    *        - name: description
-   *        - name: idCategory
+   *        - name: categoryId
    *        - name: price
    *        - name: uid
    *        - name: address
    *        - name: quantity
    *        - name: lat
    *        - name: lng
+   *        - name: image
+   *        - name: tag
    *        - name: images
    *     responses:
    *       200:
    *         description: Success
    *
    */
-  app.post("/product/create", authUser, product.createProduct);
+  app.post("/product/create", product.createProduct);
 
   /**
    * @swagger
@@ -106,7 +107,7 @@ module.exports = (app) => {
    *         description: Success
    *
    */
-  app.post("/product/delete", authAdmin, product.deleteProduct);
+  app.post("/product/delete", product.deleteProduct);
 
   /**
    * @swagger
@@ -114,23 +115,25 @@ module.exports = (app) => {
    *   post:
    *     description: get all product for admin
    *     parameters:
-   *        - name: code
+   *        - name: idProduct
    *        - name: name
    *        - name: description
-   *        - name: idCategory
+   *        - name: categoryId
    *        - name: price
    *        - name: uid
    *        - name: address
    *        - name: quantity
    *        - name: lat
    *        - name: lng
+   *        - name: image
+   *        - name: tag
    *        - name: images
    *     responses:
    *       200:
    *         description: Success
    *
    */
-  app.post("/product/update", authUser, product.updateProduct);
+  app.post("/product/update", product.updateProduct);
 
   /**
    * @swagger
@@ -138,7 +141,7 @@ module.exports = (app) => {
    *   post:
    *     description: get all post of user
    *     parameters:
-   *      - name: idUser
+   *      - name: uid
    *        in: query
    *      - name: limit
    *        in: query
@@ -149,5 +152,5 @@ module.exports = (app) => {
    *         description: Success
    *
    */
-  app.post("/user/product", authUser, product.getAllPostOfUser);
+  app.post("/user/product", product.getAllPostOfUser);
 };

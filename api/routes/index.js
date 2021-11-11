@@ -6,6 +6,7 @@ router.get("/", (req, res) => {
 });
 
 require("./product")(router);
+require("./category")(router);
 require("./auth")(router);
 
 module.exports = router;
