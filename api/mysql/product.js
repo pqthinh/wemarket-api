@@ -171,7 +171,7 @@ const Product = {
             sql = `INSERT INTO product (code, name, description, categoryId, price, status, uid, createdAt, updatedAt, address, quantity, lat, lng, image, tag) 
                    VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
             result = await conn.query(sql, [
-              code,
+              code.toString(),
               name,
               description,
               Number(categoryId),
