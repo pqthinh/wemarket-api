@@ -14,7 +14,11 @@ const options = {
       version: "1.0.0",
     },
   },
-  apis: ["./api/routes/product.js", "./api/routes/auth.js"],
+  apis: [
+    "./api/routes/product.js",
+    "./api/routes/auth.js",
+    "./api/routes/category.js",
+  ],
 };
 const specs = swaggerJsdoc(options);
 
