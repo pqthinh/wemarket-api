@@ -44,7 +44,7 @@ const Product = {
       if(result[0].length < 1) {
         res.json({error:"Product Not Existed"});
       }
-      images = await conn.query("select * from image where productId=?", [
+      images = await conn.query("select * from image where productId=? AND deletedAt is null", [
         idProduct,
       ]);
 
@@ -288,7 +288,7 @@ const Product = {
             ]);
             await conn.commit();
             if(imgQuery[0].length > 0) {
-              await conn.query('update image set deletedAt = Null, updatedAt = ?, status = "pending" where url = ? AND productId = ?',[updatedAt, img, idProduct]);
+              await conn.query('update image set deletedAt = Null, status = "pending" where url = ? AND productId = ?',[img, idProduct]);
               await conn.commit();
             } else {
               sql = `INSERT INTO image ( productId, url, status, createdAt, updatedAt) 
