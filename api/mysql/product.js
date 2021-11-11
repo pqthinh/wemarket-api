@@ -49,6 +49,10 @@ const Product = {
         "select url from image where productId=? AND deletedAt is null",
         [idProduct]
       );
+      await conn.query(
+        `update product set view= view+1 where productId=? AND status='active'`,
+        [idProduct]
+      );
 
       await conn.commit();
 
