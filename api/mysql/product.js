@@ -138,85 +138,84 @@ const Product = {
       categoryId,
       price,
       uid,
-      address,
       quantity,
-      lat = null,
-      lng = null,
-      image = "https://cdn.mobilecity.vn/mobilecity-vn/images/2021/07/iphone-11-pro-max-mat-truoc-sau.jpg,https://cdn.mobilecity.vn/mobilecity-vn/images/2021/07/iphone-11-pro-max-mat-truoc.jpg",
+      location = {},
+      image = "https://cdn.mobilecity.vn/mobilecity-vn/images/2021/07/iphone-11-pro-max-mat-truoc-sau.jpg",
       images = [],
       tag = [],
     } = req.body;
     let createdAt = new Date();
+    let { address, lat, lng } = location;
     try {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
-      let sqlMax, idMax, sqlUser, result;
-      let tagStr = tag.toString();
-      //Gen code
-      sqlMax = `select Max(id) as id from product`;
-      idMax = await conn.query(sqlMax);
-      await conn.commit();
-      let codeNum = idMax + 100000;
-      let code = "PRODUCT" + codeNum;
+      const validate = {};
 
-      //validate data
-      if (images.length > 10) {
-        res.json({ error: "More than 10 images" });
-      } else {
-        sqlUser = `Select * from user where uid = ?`;
-        let hasUser = await conn.query(sqlUser, [uid]);
-        await conn.commit();
-        if (hasUser[0].length < 1) {
-          res.json({ error: "User Not Existed" });
-        } else {
-          //create product
-          sql = `INSERT INTO product (code, name, description, categoryId, price, status, uid, createdAt, updatedAt, address, quantity, lat, lng, image, tag) 
-                   VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-          result = await conn.query(sql, [
-            code.toString(),
-            name,
-            description,
-            Number(categoryId),
-            Number(price),
-            uid,
-            createdAt,
-            createdAt,
-            address,
-            Number(quantity),
-            lat,
-            lng,
-            image,
-            tagStr,
-          ]);
-          await conn.commit();
+      if (images.length > 8) validate.images = "Max length images is 8";
+      if (!name.trim()) validate.name = "name is require field ";
+      if (!description) validate.description = "description is require field ";
+      if (!categoryId) validate.categoryId = "categoryId is require field ";
+      if (!price || price < 0) validate.price = "price is invalid ";
+      if (!price || price < 0) validate.price = "price is invalid ";
+      if (!location || !lat || !lng || !address.trim())
+        validate.location = "location is invalid ";
+      if (!image) validate.image = "spotlight image is invalid ";
+      if (tag && tag.length > 5) validate.tag = "Tag limit 5";
 
-          //Get product.id
-          let sql1 = `select * from product where code = ?`;
-          let product = await conn.query(sql1, [code]);
-          await conn.commit();
-          let id = product[0][0].id;
-
-          //create images
-          for (let img of images) {
-            sql = `INSERT INTO image ( productId, url, status, createdAt, updatedAt) 
-                     VALUES (?, ?, 'pending', ?, ?)`;
-            result = await conn.query(sql, [id, img, createdAt, createdAt]);
-            await conn.commit();
-          }
-
-          //Get images
-          imgs = await conn.query("select * from image where productId=?", [
-            id,
-          ]);
-
-          const response = {
-            status: 1,
-            product: product[0][0],
-            images: imgs[0],
-          };
-          res.json(response);
-        }
+      if (Object.keys(validate).length !== 0) {
+        res.json({ status: false, error: validate });
+        return;
       }
+
+      let sqlUser, result;
+      let tagStr = tag.toString();
+      let code = new Date().getTime();
+
+      sqlUser = `Select * from user where uid = ?`;
+      let hasUser = await conn.query(sqlUser, [uid]);
+      await conn.commit();
+
+      if (hasUser[0].length < 1) {
+        res.json({ error: "User Not Existed" });
+        return;
+      }
+
+      //create product
+      sql = `INSERT INTO product (code, name, description, categoryId, price, status, uid, createdAt, updatedAt, address, quantity, lat, lng, image, tag) VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+      result = await conn.query(sql, [
+        code.toString(),
+        name,
+        description,
+        Number(categoryId),
+        Number(price),
+        uid,
+        createdAt,
+        createdAt,
+        address,
+        Number(quantity),
+        lat,
+        lng,
+        image,
+        tagStr,
+      ]);
+      await conn.commit();
+
+      let idProductAfterCreate = result[0].insertId;
+      let valuesImg = [];
+      images.map((img) => {
+        valuesImg = [...valuesImg, [idProductAfterCreate, img]];
+      });
+
+      //create images
+      sql = `INSERT INTO image ( productId, url) VALUES ?`;
+      result = await conn.query(sql, [valuesImg]);
+      await conn.commit();
+
+      const response = {
+        status: 1,
+        message: `Create success product id = ${idProductAfterCreate}`,
+      };
+      res.json(response);
     } catch (err) {
       await conn.rollback();
       next(err);
