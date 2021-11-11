@@ -168,7 +168,7 @@ const Product = {
       }
 
       let sqlUser, result;
-      let tagStr = tag.toString();
+      let tagStr = JSON.stringify(tag);
       let code = new Date().getTime();
 
       sqlUser = `Select * from user where uid = ?`;
