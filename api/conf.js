@@ -1,9 +1,19 @@
+// module.exports = {
+//   poolConfig: {
+//     host: "sql6.freesqldatabase.com",
+//     user: "sql6449396",
+//     password: "Ae53Mx2XSS",
+//     database: "sql6449396",
+//     port: 3306,
+//   },
+// };
+
 module.exports = {
   poolConfig: {
-    host: "sql6.freesqldatabase.com",
-    user: "sql6449396",
-    password: "Ae53Mx2XSS",
-    database: "sql6449396",
+    host: "db4free.net",
+    user: "wemarket",
+    password: "wemarket",
+    database: "wemarket",
     port: 3306,
   },
 };

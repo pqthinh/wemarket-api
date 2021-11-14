@@ -50,7 +50,7 @@ const Product = {
         [idProduct]
       );
       await conn.query(
-        `update product set view= view+1 where productId=? AND status='active'`,
+        `update product set view= view+1 where id=? AND status='active'`,
         [idProduct]
       );
 
@@ -419,32 +419,34 @@ const Product = {
   },
   filterActiveProduct: async (req, res, next) => {
     let conn;
-    let { 
-      search, 
-      categoryId=[], 
-      minPrice, 
-      maxPrice, 
-      minQuantity, 
-      maxQuantity, 
-      maxLike, 
-      maxView, 
-      minLike, 
-      minView,  
+    let {
+      search,
+      categoryId = [],
+      minPrice,
+      maxPrice,
+      minQuantity,
+      maxQuantity,
+      maxLike,
+      maxView,
+      minLike,
+      minView,
       orderByDate,
-      orderByLike, 
+      orderByLike,
       orderByView,
       orderByQuantity,
       orderByPrice,
       orderByDistance,
       distance,
       lat,
-      lng
+      lng,
     } = req.body;
     try {
       //Get all product
       conn = await dbs.getConnection();
       await conn.beginTransaction();
-      let sql, result, error = [];
+      let sql,
+        result,
+        error = [];
       sql = `select product.id, product.code, product.name, product.description, product.categoryId, product.price, product.createdAt, product.updatedAt,product.lat, product.lng, product.address, product.quantity, product.image, product.tag, product.like_num, product.view,user.uid, user.username, user.address AS userAddress, user.email, user.phone, user.avatar, category.name AS categoryName
       from category, product, user 
       where product.status ="active" and product.deletedAt is null AND user.uid = product.uid AND category.id=product.categoryId`;
@@ -452,94 +454,127 @@ const Product = {
       await conn.commit();
       let product = result[0];
       //search
-      if(search) {
-        product = product.filter(x => x.description.toLowerCase().includes(search.toLowerCase()) || x.name.toLowerCase().includes(search.toLowerCase()));
+      if (search) {
+        product = product.filter(
+          (x) =>
+            x.description.toLowerCase().includes(search.toLowerCase()) ||
+            x.name.toLowerCase().includes(search.toLowerCase())
+        );
       }
       //search by category
-      if(categoryId.length >0) {
-        product = product.filter(x => categoryId.includes(x.categoryId));
+      if (categoryId.length > 0) {
+        product = product.filter((x) => categoryId.includes(x.categoryId));
       }
-      if(minPrice) {
-        product = product.filter(x => x.price >= minPrice);
+      if (minPrice) {
+        product = product.filter((x) => x.price >= minPrice);
       }
-      if(maxPrice) {
-        product = product.filter(x => x.price <= maxPrice);
+      if (maxPrice) {
+        product = product.filter((x) => x.price <= maxPrice);
       }
-      if(minQuantity) {
-        product = product.filter(x => x.quantity >= minQuantity);
+      if (minQuantity) {
+        product = product.filter((x) => x.quantity >= minQuantity);
       }
-      if(maxQuantity) {
-        product = product.filter(x => x.quantity <= maxQuantity);
+      if (maxQuantity) {
+        product = product.filter((x) => x.quantity <= maxQuantity);
       }
-      if(minView) {
-        product = product.filter(x => x.view >= minView);
+      if (minView) {
+        product = product.filter((x) => x.view >= minView);
       }
-      if(maxView) {
-        product = product.filter(x => x.view <= maxPrice);
+      if (maxView) {
+        product = product.filter((x) => x.view <= maxPrice);
       }
-      if(minLike) {
-        product = product.filter(x => x.like_num >= minLike);
+      if (minLike) {
+        product = product.filter((x) => x.like_num >= minLike);
       }
-      if(maxLike) {
-        product = product.filter(x => x.like_num <= maxLike);
+      if (maxLike) {
+        product = product.filter((x) => x.like_num <= maxLike);
       }
       //search by distance
-      if(lat && lng) {
-        let R = 6371 //km
-        product.forEach(x => {
-          let dLat = (lat - x.lat)* (Math.PI /180);
-          let dLon = (lng - x.lng)* (Math.PI /180);
-          let lat1 = x.lat * (Math.PI /180);
-          let lat2 = lat * (Math.PI /180);
-          let a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2); 
-          let c = 2* Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-          x.distance = Math.round(R*c*100)/100 ;
+      if (lat && lng) {
+        let R = 6371; //km
+        product.forEach((x) => {
+          let dLat = (lat - x.lat) * (Math.PI / 180);
+          let dLon = (lng - x.lng) * (Math.PI / 180);
+          let lat1 = x.lat * (Math.PI / 180);
+          let lat2 = lat * (Math.PI / 180);
+          let a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.sin(dLon / 2) *
+              Math.sin(dLon / 2) *
+              Math.cos(lat1) *
+              Math.cos(lat2);
+          let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+          x.distance = Math.round(R * c * 100) / 100;
         });
-        if(distance) {
-          product = product.filter(p => p.distance < distance);
+        if (distance) {
+          product = product.filter((p) => p.distance < distance);
         }
-        if(orderByDistance) {
-          if(orderByDistance == "desc") {
-            product = product.sort(function(a, b) {return b.distance - a.distance});
+        if (orderByDistance) {
+          if (orderByDistance == "desc") {
+            product = product.sort(function (a, b) {
+              return b.distance - a.distance;
+            });
           } else {
-            product = product.sort(function(a, b) {return a.distance - b.distance});
+            product = product.sort(function (a, b) {
+              return a.distance - b.distance;
+            });
           }
         }
       }
       //sort
-      if(orderByDate) {
-        if(orderByDate == "desc") {
-          product = product.sort(function(a, b) {return new Date(b.createdAt) - new Date(a.createdAt)});
+      if (orderByDate) {
+        if (orderByDate == "desc") {
+          product = product.sort(function (a, b) {
+            return new Date(b.createdAt) - new Date(a.createdAt);
+          });
         } else {
-          product = product.sort(function(a, b) {return new Date(a.createdAt) - new Date(b.createdAt)});
+          product = product.sort(function (a, b) {
+            return new Date(a.createdAt) - new Date(b.createdAt);
+          });
         }
       }
-      if(orderByLike) {
-        if(orderByLike == "desc") {
-          product = product.sort(function(a, b) {return b.like_num - a.like_num});
+      if (orderByLike) {
+        if (orderByLike == "desc") {
+          product = product.sort(function (a, b) {
+            return b.like_num - a.like_num;
+          });
         } else {
-          product = product.sort(function(a, b) {return a.like_num - b.like_num});
+          product = product.sort(function (a, b) {
+            return a.like_num - b.like_num;
+          });
         }
       }
-      if(orderByQuantity) {
-        if(orderByQuantity == "desc") {
-          product = product.sort(function(a, b) {return b.quantity - a.quantity});
+      if (orderByQuantity) {
+        if (orderByQuantity == "desc") {
+          product = product.sort(function (a, b) {
+            return b.quantity - a.quantity;
+          });
         } else {
-          product = product.sort(function(a, b) {return a.quantity - b.quantity});
+          product = product.sort(function (a, b) {
+            return a.quantity - b.quantity;
+          });
         }
       }
-      if(orderByView) {
-        if(orderByView == "desc") {
-          product = product.sort(function(a, b) {return b.view - a.view});
+      if (orderByView) {
+        if (orderByView == "desc") {
+          product = product.sort(function (a, b) {
+            return b.view - a.view;
+          });
         } else {
-          product = product.sort(function(a, b) {return a.view - b.view});
+          product = product.sort(function (a, b) {
+            return a.view - b.view;
+          });
         }
       }
-      if(orderByPrice) {
-        if(orderByPrice == "desc") {
-          product = product.sort(function(a, b) {return b.price - a.price});
+      if (orderByPrice) {
+        if (orderByPrice == "desc") {
+          product = product.sort(function (a, b) {
+            return b.price - a.price;
+          });
         } else {
-          product = product.sort(function(a, b) {return a.price - b.price});
+          product = product.sort(function (a, b) {
+            return a.price - b.price;
+          });
         }
       }
       const response = {
