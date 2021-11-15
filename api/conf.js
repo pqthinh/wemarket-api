@@ -8,12 +8,22 @@
 //   },
 // };
 
+// module.exports = {
+//   poolConfig: {
+//     host: "db4free.net",
+//     user: "wemarket",
+//     password: "wemarket",
+//     database: "wemarket",
+//     port: 3306,
+//   },
+// };
+
 module.exports = {
   poolConfig: {
-    host: "db4free.net",
-    user: "wemarket",
-    password: "wemarket",
-    database: "wemarket",
+    host: "remotemysql.com",
+    user: "SBHs6vqy59",
+    password: "MzsvcRThPL",
+    database: "SBHs6vqy59",
     port: 3306,
   },
 };
