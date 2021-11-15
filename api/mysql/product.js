@@ -34,7 +34,8 @@ const Product = {
         });
       }
       
-      product = product.slice(offset, offset + limit);
+      let skip = Number(offset > 0 ? offset : 0 ) * Number(limit);
+      product = product.slice(skip, skip + Number(limit) );
       sqlCount = `select count(*) as total from product where status ="active" and product.deletedAt is null`;
       const total = await conn.query(sqlCount);
       await conn.commit();

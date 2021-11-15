@@ -323,6 +323,66 @@ const User = {
       await conn.release();
     }
   },
+  updateUser:async (req, res, next) => {
+    let conn;
+    let {uid, username, address, email, phone, gender=null, birthday, avatar=null } = req.body;
+    try {
+      let updatedAt = new Date();
+      conn = await dbs.getConnection();
+      await conn.beginTransaction();
+
+      let result, response;
+
+      if (!email || !phone) {
+        response = {error: true, message:"Email or phone is empty"}
+        res.json({ response });
+      }
+      else {
+        let sql = `update user 
+                   set username = ?, address = ?, email = ?, phone = ?, gender =?, birthday = ?, avatar = ?, updatedAt = ? 
+                   where uid = ?`;
+        await conn.query(sql, [username, address, email, phone, gender, birthday, avatar, updatedAt, uid]);
+        await conn.commit();
+        response = { status: 1, message: "success"};
+        res.json({ response });
+      }
+      
+    } catch (err) {
+      await conn.rollback();
+      next(err);
+    } finally {
+      await conn.release();
+    }
+  },
+  ListAllUser:async (req, res, next) => {
+    let conn;
+    let {limit = 10, offset = 0} = req.body;
+    try {
+      conn = await dbs.getConnection();
+      await conn.beginTransaction();
+
+      let result, response;
+      sql = `select * from user where deletedAt is null`;
+      result = await conn.query(sql);
+      await conn.commit();
+      let user = result[0];
+      let skip = Number(offset > 0 ? offset : 0 ) * Number(limit);
+      let userResult = user.slice(skip, skip + Number(limit));
+      const response = {
+        status: 1,
+        length: user.length,
+        page: Number(offset) + 1,
+        result: userResult,
+      };
+      res.json(response);
+      
+    } catch (err) {
+      await conn.rollback();
+      next(err);
+    } finally {
+      await conn.release();
+    }
+  },
   adminActiveUser:async (req, res, next) => {
     let { idUser } = req.body;
     let updatedAt = new Date();
@@ -343,6 +403,35 @@ const User = {
         status : 1,
       };
       res.json(response);
+    } catch (err) {
+      await conn.rollback();
+      next(err);
+    } finally {
+      await conn.release();
+    }
+  },
+  listAllUserForAdmin:async (req, res, next) => {
+    let conn;
+    let {limit = 10, offset = 0} = req.query;
+    try {
+      conn = await dbs.getConnection();
+      await conn.beginTransaction();
+
+      let result;
+      sql = `select * from user where deletedAt is null`;
+      result = await conn.query(sql);
+      await conn.commit();
+      let user = result[0];
+      let skip = Number(offset > 0 ? offset : 0 ) * Number(limit);
+      let userResult = user.slice(skip, skip + Number(limit));
+      const response = {
+        status: 1,
+        length: user.length,
+        page: Number(offset) + 1,
+        result: userResult,
+      };
+      res.json(response);
+      
     } catch (err) {
       await conn.rollback();
       next(err);
