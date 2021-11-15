@@ -50,7 +50,7 @@ module.exports = (app) => {
    *         description: Success
    */
   app.get("/admin/active-user", authAdmin, user.adminActiveUser);
-  
+
   /**
    * @swagger
    * /user/update:
@@ -58,27 +58,27 @@ module.exports = (app) => {
    *     description: update user
    *     parameters:
    *       - name: uid
-   *        in: body
+   *         in: body
    *       - name: username
-   *        in: body
+   *         in: body
    *       - name: address
-   *        in: body
+   *         in: body
    *       - name: email
-   *        in: body
+   *         in: body
    *       - name: phone
-   *        in: body
+   *         in: body
    *       - name: gender
-   *        in: body
+   *         in: body
    *       - name: birthday
-   *        in: body
+   *         in: body
    *       - name: avatar
-   *        in: body
+   *         in: body
    *     responses:
    *       200:
    *         description: Success
    */
-   app.post("/user/update", user.updateUser);
-    /**
+  app.post("/user/update", user.updateUser);
+  /**
    * @swagger
    * /user/list:
    *   get:

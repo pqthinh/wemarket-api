@@ -287,9 +287,18 @@ const User = {
       await conn.release();
     }
   },
-  createUser:async (req, res, next) => {
+  createUser: async (req, res, next) => {
     let conn;
-    let {uid, username, address, email, phone, gender=null, birthday, avatar=null } = req.body;
+    let {
+      uid,
+      username,
+      address,
+      email,
+      phone,
+      gender = null,
+      birthday,
+      avatar = null,
+    } = req.body;
     try {
       let createdAt = new Date();
       conn = await dbs.getConnection();
@@ -298,24 +307,33 @@ const User = {
       let result, response;
 
       if (!email || !phone) {
-        response = {error: true, message:"Email or phone is empty"}
+        response = { error: true, message: "Email or phone is empty" };
         res.json({ response });
-      }
-      else {
+      } else {
         let sqlCheckExist = "select * from user where email=? or phone=?";
         result = await conn.query(sqlCheckExist, [email, phone]);
         await conn.commit();
-  
+
         response = { status: false, message: "User existed false" };
         if (result[0].length == 0) {
           let sql = `insert into user set uid = ?, username = ?, address = ?, email = ?, phone = ?, gender =?, birthday = ?, avatar = ?, status = "pendding", createdAt = ?, updatedAt = ? `;
-          await conn.query(sql, [uid, username, address, email, phone, gender, birthday, avatar, createdAt, createdAt]);
+          await conn.query(sql, [
+            uid,
+            username,
+            address,
+            email,
+            phone,
+            gender,
+            birthday,
+            avatar,
+            createdAt,
+            createdAt,
+          ]);
           await conn.commit();
           response = { status: 1, message: "success" };
         }
         res.json({ response });
       }
-      
     } catch (err) {
       await conn.rollback();
       next(err);
@@ -323,9 +341,18 @@ const User = {
       await conn.release();
     }
   },
-  updateUser:async (req, res, next) => {
+  updateUser: async (req, res, next) => {
     let conn;
-    let {uid, username, address, email, phone, gender=null, birthday, avatar=null } = req.body;
+    let {
+      uid,
+      username,
+      address,
+      email,
+      phone,
+      gender = null,
+      birthday,
+      avatar = null,
+    } = req.body;
     try {
       let updatedAt = new Date();
       conn = await dbs.getConnection();
@@ -334,19 +361,27 @@ const User = {
       let result, response;
 
       if (!email || !phone) {
-        response = {error: true, message:"Email or phone is empty"}
+        response = { error: true, message: "Email or phone is empty" };
         res.json({ response });
-      }
-      else {
+      } else {
         let sql = `update user 
                    set username = ?, address = ?, email = ?, phone = ?, gender =?, birthday = ?, avatar = ?, updatedAt = ? 
                    where uid = ?`;
-        await conn.query(sql, [username, address, email, phone, gender, birthday, avatar, updatedAt, uid]);
+        await conn.query(sql, [
+          username,
+          address,
+          email,
+          phone,
+          gender,
+          birthday,
+          avatar,
+          updatedAt,
+          uid,
+        ]);
         await conn.commit();
-        response = { status: 1, message: "success"};
+        response = { status: 1, message: "success" };
         res.json({ response });
       }
-      
     } catch (err) {
       await conn.rollback();
       next(err);
@@ -354,65 +389,9 @@ const User = {
       await conn.release();
     }
   },
-  ListAllUser:async (req, res, next) => {
+  ListAllUser: async (req, res, next) => {
     let conn;
-    let {limit = 10, offset = 0} = req.body;
-    try {
-      conn = await dbs.getConnection();
-      await conn.beginTransaction();
-
-      let result, response;
-      sql = `select * from user where deletedAt is null`;
-      result = await conn.query(sql);
-      await conn.commit();
-      let user = result[0];
-      let skip = Number(offset > 0 ? offset : 0 ) * Number(limit);
-      let userResult = user.slice(skip, skip + Number(limit));
-      const response = {
-        status: 1,
-        length: user.length,
-        page: Number(offset) + 1,
-        result: userResult,
-      };
-      res.json(response);
-      
-    } catch (err) {
-      await conn.rollback();
-      next(err);
-    } finally {
-      await conn.release();
-    }
-  },
-  adminActiveUser:async (req, res, next) => {
-    let { idUser } = req.body;
-    let updatedAt = new Date();
-    try {
-      conn = await dbs.getConnection();
-      await conn.beginTransaction();
-      let sql, result;
-      sql = `update user
-             set status = "active",updatedAt = ?
-             where user.id = ?`;
-      result = await conn.query(sql, [
-        updatedAt,
-        idUser,
-      ]);
-
-      const response = {
-        result: "success",
-        status : 1,
-      };
-      res.json(response);
-    } catch (err) {
-      await conn.rollback();
-      next(err);
-    } finally {
-      await conn.release();
-    }
-  },
-  listAllUserForAdmin:async (req, res, next) => {
-    let conn;
-    let {limit = 10, offset = 0} = req.query;
+    let { limit = 10, offset = 0 } = req.body;
     try {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
@@ -422,7 +401,7 @@ const User = {
       result = await conn.query(sql);
       await conn.commit();
       let user = result[0];
-      let skip = Number(offset > 0 ? offset : 0 ) * Number(limit);
+      let skip = Number(offset > 0 ? offset : 0) * Number(limit);
       let userResult = user.slice(skip, skip + Number(limit));
       const response = {
         status: 1,
@@ -431,7 +410,58 @@ const User = {
         result: userResult,
       };
       res.json(response);
-      
+    } catch (err) {
+      await conn.rollback();
+      next(err);
+    } finally {
+      await conn.release();
+    }
+  },
+  adminActiveUser: async (req, res, next) => {
+    let { idUser } = req.body;
+    let updatedAt = new Date();
+    try {
+      conn = await dbs.getConnection();
+      await conn.beginTransaction();
+      let sql, result;
+      sql = `update user
+             set status = "active",updatedAt = ?
+             where user.id = ?`;
+      result = await conn.query(sql, [updatedAt, idUser]);
+
+      const response = {
+        result: "success",
+        status: 1,
+      };
+      res.json(response);
+    } catch (err) {
+      await conn.rollback();
+      next(err);
+    } finally {
+      await conn.release();
+    }
+  },
+  listAllUserForAdmin: async (req, res, next) => {
+    let conn;
+    let { limit = 10, offset = 0 } = req.query;
+    try {
+      conn = await dbs.getConnection();
+      await conn.beginTransaction();
+
+      let result;
+      sql = `select * from user where deletedAt is null`;
+      result = await conn.query(sql);
+      await conn.commit();
+      let user = result[0];
+      let skip = Number(offset > 0 ? offset : 0) * Number(limit);
+      let userResult = user.slice(skip, skip + Number(limit));
+      const response = {
+        status: 1,
+        length: user.length,
+        page: Number(offset) + 1,
+        result: userResult,
+      };
+      res.json(response);
     } catch (err) {
       await conn.rollback();
       next(err);

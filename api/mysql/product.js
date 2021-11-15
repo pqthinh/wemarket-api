@@ -8,14 +8,11 @@ const Product = {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
       let sql, result;
-      sql = `select product.*,user.uid, user.username, user.address, user.email, user.phone, user.avatar from user, product where product.status ="active" and user.uid=product.uid and product.deletedAt is null`;
-      // result = await conn.query(sql, [
-      //   Number(limit),
-      //   Number(offset > 0 ? offset : 0) * Number(limit),
-      // ]);
+      sql = `select product.*,user.*, category.name as categoryName, category.icon as categoryIcon from user, product, category where product.status ="active" and user.uid=product.uid and product.categoryId=category.id and product.deletedAt is null`;
+
       result = await conn.query(sql);
       let product = result[0];
-      //distance each product
+
       if (lat && lng) {
         let R = 6371; //km
         product.forEach((x) => {
@@ -26,16 +23,16 @@ const Product = {
           let a =
             Math.sin(dLat / 2) * Math.sin(dLat / 2) +
             Math.sin(dLon / 2) *
-            Math.sin(dLon / 2) *
-            Math.cos(lat1) *
-            Math.cos(lat2);
+              Math.sin(dLon / 2) *
+              Math.cos(lat1) *
+              Math.cos(lat2);
           let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
           x.distance = Math.round(R * c * 100) / 100;
         });
       }
-      
-      let skip = Number(offset > 0 ? offset : 0 ) * Number(limit);
-      product = product.slice(skip, skip + Number(limit) );
+
+      let skip = Number(offset > 0 ? offset : 0) * Number(limit);
+      product = product.slice(skip, skip + Number(limit));
       sqlCount = `select count(*) as total from product where status ="active" and product.deletedAt is null`;
       const total = await conn.query(sqlCount);
       await conn.commit();
@@ -55,12 +52,14 @@ const Product = {
   },
   getProductDetail: async (req, res, next) => {
     let conn;
-    let { idProduct, lat, lng } = req.query;
+    let { idProduct } = req.params;
+    let { lat, lng } = req.query;
+
     try {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
       let sql, result;
-      sql = `select product.*, user.* from user, product where product.id = ? and user.uid = product.uid and product.status ="active" and product.deletedAt is null`;
+      sql = `select product.*, user.*, category.name as categoryName, category.icon as categoryIcon from user, product, category where product.id = ? and user.uid = product.uid and product.categoryId = category.id and product.status ="active" and product.deletedAt is null`;
 
       result = await conn.query(sql, [idProduct.toString()]);
 
@@ -87,14 +86,13 @@ const Product = {
         let lat1 = product.lat * (Math.PI / 180);
         let lat2 = lat * (Math.PI / 180);
         let a =
-            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.sin(dLon / 2) *
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.sin(dLon / 2) *
             Math.sin(dLon / 2) *
             Math.cos(lat1) *
             Math.cos(lat2);
         let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         product.distance = Math.round(R * c * 100) / 100;
-        
       }
       const data = {
         ...product,
@@ -121,7 +119,7 @@ const Product = {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
       let sql, result;
-      sql = `select product.*,user.uid, user.username, user.address, user.email, user.phone, user.avatar from user, product where user.uid = product.uid and product.deletedAt is null limit ? offset ?`;
+      sql = `select product.*,user.* from user, product where user.uid = product.uid and product.deletedAt is null limit ? offset ?`;
       result = await conn.query(sql, [
         Number(limit),
         Number(offset > 0 ? offset : 0) * Number(limit),
@@ -151,7 +149,7 @@ const Product = {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
       let sql, result, count, total;
-      sql = `select product.*,user.uid, user.username, user.address, user.email, user.phone, user.avatar, category.name AS categoryName from category, product, user where product.status ="active" and product.deletedAt is null AND user.uid = product.uid AND product.categoryId = category.id AND category.id = ? limit ? offset ?`;
+      sql = `select product.*,user*, category.name as categoryName, category.icon as categoryIcon from category, product, user where product.status ="active" and product.deletedAt is null AND user.uid = product.uid AND product.categoryId = category.id AND category.id = ? limit ? offset ?`;
       result = await conn.query(sql, [
         idCategory.toString(),
         Number(limit),
