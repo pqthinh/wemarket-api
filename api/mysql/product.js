@@ -3,16 +3,38 @@ const dbs = require("./dbs");
 const Product = {
   getAllPostActive: async (req, res, next) => {
     let conn,
-      { limit = 10, offset = 0 } = req.query;
+      { limit = 10, offset = 0, lat, lng } = req.query;
     try {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
       let sql, result;
-      sql = `select product.*,user.uid, user.username, user.address, user.email, user.phone, user.avatar from user, product where product.status ="active" and user.uid=product.uid and product.deletedAt is null limit ? offset ?`;
-      result = await conn.query(sql, [
-        Number(limit),
-        Number(offset > 0 ? offset : 0) * Number(limit),
-      ]);
+      sql = `select product.*,user.uid, user.username, user.address, user.email, user.phone, user.avatar from user, product where product.status ="active" and user.uid=product.uid and product.deletedAt is null`;
+      // result = await conn.query(sql, [
+      //   Number(limit),
+      //   Number(offset > 0 ? offset : 0) * Number(limit),
+      // ]);
+      result = await conn.query(sql);
+      let product = result[0];
+      //distance each product
+      if (lat && lng) {
+        let R = 6371; //km
+        product.forEach((x) => {
+          let dLat = (lat - x.lat) * (Math.PI / 180);
+          let dLon = (lng - x.lng) * (Math.PI / 180);
+          let lat1 = x.lat * (Math.PI / 180);
+          let lat2 = lat * (Math.PI / 180);
+          let a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.sin(dLon / 2) *
+            Math.sin(dLon / 2) *
+            Math.cos(lat1) *
+            Math.cos(lat2);
+          let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+          x.distance = Math.round(R * c * 100) / 100;
+        });
+      }
+      
+      product = product.slice(offset, offset + limit);
       sqlCount = `select count(*) as total from product where status ="active" and product.deletedAt is null`;
       const total = await conn.query(sqlCount);
       await conn.commit();
@@ -20,7 +42,7 @@ const Product = {
       const response = {
         total: total[0][0].total,
         page: Number(offset) + 1,
-        result: result[0],
+        result: product,
       };
       res.json(response);
     } catch (err) {
@@ -32,7 +54,7 @@ const Product = {
   },
   getProductDetail: async (req, res, next) => {
     let conn;
-    let { idProduct } = req.params;
+    let { idProduct, lat, lng } = req.query;
     try {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
@@ -55,9 +77,26 @@ const Product = {
       );
 
       await conn.commit();
-
+      let product = result[0][0];
+      //distance of product
+      if (lat && lng) {
+        let R = 6371; //km
+        let dLat = (lat - product.lat) * (Math.PI / 180);
+        let dLon = (lng - product.lng) * (Math.PI / 180);
+        let lat1 = product.lat * (Math.PI / 180);
+        let lat2 = lat * (Math.PI / 180);
+        let a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.sin(dLon / 2) *
+            Math.sin(dLon / 2) *
+            Math.cos(lat1) *
+            Math.cos(lat2);
+        let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        product.distance = Math.round(R * c * 100) / 100;
+        
+      }
       const data = {
-        ...result[0][0],
+        ...product,
         images: images[0].map((img) => img.url),
       };
       const response = {
