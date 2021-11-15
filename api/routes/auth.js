@@ -50,4 +50,48 @@ module.exports = (app) => {
    *         description: Success
    */
   app.get("/admin/active-user", authAdmin, user.adminActiveUser);
+  
+  /**
+   * @swagger
+   * /user/update:
+   *   post:
+   *     description: update user
+   *     parameters:
+   *       - name: uid
+   *        in: body
+   *       - name: username
+   *        in: body
+   *       - name: address
+   *        in: body
+   *       - name: email
+   *        in: body
+   *       - name: phone
+   *        in: body
+   *       - name: gender
+   *        in: body
+   *       - name: birthday
+   *        in: body
+   *       - name: avatar
+   *        in: body
+   *     responses:
+   *       200:
+   *         description: Success
+   */
+   app.post("/user/update", user.updateUser);
+    /**
+   * @swagger
+   * /user/list:
+   *   get:
+   *     description: list all user for admin include active, inactive, pending account
+   *     parameters:
+   *      - name: limit
+   *        in: query
+   *      - name: offset
+   *        in: query
+   *     responses:
+   *       200:
+   *         description: Success
+   *
+   */
+  app.get("/user/list", user.listAllUserForAdmin);
 };
