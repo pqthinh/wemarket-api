@@ -485,7 +485,7 @@ const Product = {
       let sql,
         result,
         error = [];
-      sql = `select product.id, product.code, product.name, product.description, product.categoryId, product.price, product.createdAt, product.updatedAt,product.lat, product.lng, product.address, product.quantity, product.image, product.tag, product.like_num, product.view,user.uid, user.username, user.address AS userAddress, user.email, user.phone, user.avatar, category.name AS categoryName
+      sql = `select product.*,user.uid, user.username, user.address AS userAddress, user.email, user.phone, user.avatar, category.name AS categoryName, category.icon as iconCategory
       from category, product, user 
       where product.status ="active" and product.deletedAt is null AND user.uid = product.uid AND category.id=product.categoryId`;
       result = await conn.query(sql);
