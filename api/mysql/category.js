@@ -3,23 +3,19 @@ const dbs = require("./dbs");
 const Category = {
   getListCategory: async (req, res, next) => {
     let conn,
-      { limit = 10, offset = 0 } = req.body;
+     // { limit = 10, offset = 0 } = req.body;
     try {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
       let sql, result;
-      sql = `select * from category limit ? offset ?`;
-      result = await conn.query(sql, [
-        Number(limit),
-        Number(offset > 0 ? offset : 0) * Number(limit),
-      ]);
+      sql = `select * from category`;
+      result = await conn.query(sql);
       sqlCount = `select count(*) as total from category`;
       const total = await conn.query(sqlCount);
       await conn.commit();
 
       const response = {
         total: total[0][0].total,
-        page: Number(offset) + 1,
         result: result[0],
       };
       res.json(response);
@@ -168,23 +164,22 @@ const Category = {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
       let sql, result;
-      if(!idCategory) {
-        res.json({ status: false, error: "idCategory is required" });
-        return;
-      }
+      // if(!idCategory) {
+      //   res.json({ status: false, error: "idCategory is required" });
+      //   return;
+      // }
       sql = `select * from subcategory`;
       result = await conn.query(sql);
       let subcategory = result[0];
       if(idCategory) {
         subcategory = subcategory.filter(x => x.categoryId == idCategory);
       }
-      let skip = Number(offset > 0 ? offset : 0) * Number(limit);
-      let subcategoryResult = subcategory.slice(skip, skip + Number(limit));
+      //let skip = Number(offset > 0 ? offset : 0) * Number(limit);
+      //let subcategoryResult = subcategory.slice(skip, skip + Number(limit));
 
       const response = {
         total: subcategory.length,
-        page: Number(offset) + 1,
-        result: subcategoryResult,
+        result: subcategory,
       };
       res.json(response);
     } catch (err) {
