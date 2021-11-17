@@ -8,5 +8,6 @@ router.get("/", (req, res) => {
 require("./product")(router);
 require("./category")(router);
 require("./auth")(router);
+require("./admin")(router);
 
 module.exports = router;

@@ -154,13 +154,12 @@ const User = {
     }
   },
   loginAdmin: async (req, res, next) => {
-    // console.log(req)
     let conn;
     try {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
       const body = req.body,
-        email = body.Email,
+        email = body.email,
         uPassword = body.password;
       if (!email || !uPassword) {
         return res.status(400).json({
@@ -215,24 +214,24 @@ const User = {
       await conn.beginTransaction();
       const body = req.body,
         uname = body.name,
-        username = body.username,
+        email = body.email,
         uPassword = body.password;
-      if (!uname || !uPassword || !username) {
+      if (!uname || !uPassword || !email) {
         return res.status(400).json({
           error: true,
-          message: "Name, Username , Password required.",
+          message: "Username, email , Password required.",
         });
       }
-      // Check username
+      // Check email
       let sql1, result1;
-      sql1 = `select * from admin where username =? `;
-      result1 = await conn.query(sql1, [username]);
+      sql1 = `select * from admin where email =? `;
+      result1 = await conn.query(sql1, [email]);
       await conn.commit();
 
       if (result1[0].length > 0) {
         return res.status(401).json({
           error: true,
-          message: "Username existed",
+          message: "Email existed",
         });
       } else {
         let sql, result;
@@ -241,8 +240,8 @@ const User = {
         const myPlaintextPassword = uPassword;
         const hash = bcrypt.hashSync(myPlaintextPassword, saltRounds);
 
-        sql = `insert into admin(name, username, password) value(?,?,?)`;
-        result = await conn.query(sql, [uname, username, hash]);
+        sql = `insert into admin(email, name, password) value(?,?,?)`;
+        result = await conn.query(sql, [email, uname, hash]);
         await conn.commit();
       }
 
@@ -261,7 +260,7 @@ const User = {
       await conn.beginTransaction();
       const body = req.body,
         uname = body.name,
-        uid = req.params.id,
+        uid = body.id,
         uUsername = body.username,
         uPassword = body.password;
 
