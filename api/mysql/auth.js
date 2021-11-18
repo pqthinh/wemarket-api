@@ -173,33 +173,29 @@ const User = {
       result = await conn.query(sql, [email]);
       await conn.commit();
 
-      if (result[0].length == 0) {
+      if (result[0].length == 0)
         return res.status(401).json({
           error: true,
           message: "Email is wrong.",
         });
-      } else if (result[0].length > 1) {
+
+      // check password
+      const hash = result[0][0].password;
+      if (!bcrypt.compareSync(uPassword, hash)) {
         return res.status(401).json({
+          data: null,
           error: true,
-          message: "Loi he thong",
+          message: "Password is Wrong.",
         });
-      } else {
-        // check password
-        const hash = result[0][0].password;
-        if (!bcrypt.compareSync(uPassword, hash)) {
-          return res.status(401).json({
-            error: true,
-            message: "Password is Wrong.",
-          });
-        }
       }
+
       // generate token
       const token = utils.generateToken(result[0][0]);
       // get basic user details
       const userObj = utils.getCleanUser(result[0][0]);
       // return the token along with user details
       // console.log(userObj)
-      res.json({ user: userObj, token });
+      res.json({ data: { user: userObj, token }, message: "Login success" });
     } catch (err) {
       await conn.rollback();
       next(err);
