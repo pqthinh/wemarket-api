@@ -442,7 +442,7 @@ const User = {
   },
   ListAllUser: async (req, res, next) => {
     let conn;
-    let { limit = 10, offset = 0 } = req.body;
+    let { limit = 20, offset = 0 } = req.body;
     try {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
@@ -494,7 +494,7 @@ const User = {
   },
   listAllUserForAdmin: async (req, res, next) => {
     let conn;
-    let { limit = 10, offset = 0 } = req.query;
+    let { limit = 20, offset = 0 } = req.query;
     try {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
@@ -523,13 +523,10 @@ const User = {
   adminFilterUser: async (req, res, next) => {
     let conn;
     let {
-      email,
-      username,
-      address,
-      phone,
+      query,
       orderByDate,
       orderByStatus,
-      limit = 10,
+      limit = 20,
       offset = 0,
     } = req.body;
     try {
@@ -537,33 +534,20 @@ const User = {
       await conn.beginTransaction();
 
       let result;
-      sql = `select * from user where deletedAt is null`;
+      sql = `select * from user`;
       result = await conn.query(sql);
       await conn.commit();
       let user = result[0];
 
-      //search email
-      if (email) {
-        user = user.filter((x) =>
-          x.email.toLowerCase().includes(email.toLowerCase())
+      //search email || username || address || phone
+      if (query) {
+        user = user.filter(
+          (x) =>
+            x.email.toLowerCase().includes(query.toLowerCase()) ||
+            x.username.toLowerCase().includes(query.toLowerCase()) ||
+            x.address.toLowerCase().includes(query.toLowerCase()) ||
+            x.phone.includes(query)
         );
-      }
-      //search username
-      if (username) {
-        user = user.filter((x) =>
-          x.username.toLowerCase().includes(username.toLowerCase())
-        );
-      }
-      //search address
-      if (address) {
-        user = user.filter((x) =>
-          x.address.toLowerCase().includes(address.toLowerCase())
-        );
-      }
-
-      //search phone
-      if (phone) {
-        user = user.filter((x) => x.phone.includes(phone));
       }
 
       //sort by created date
@@ -594,9 +578,10 @@ const User = {
 
       let skip = Number(offset > 0 ? offset : 0) * Number(limit);
       let userResult = user.slice(skip, skip + Number(limit));
+
       const response = {
-        status: 1,
-        length: user.length,
+        status: true,
+        total: user.length,
         page: Number(offset) + 1,
         result: userResult,
       };

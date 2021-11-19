@@ -646,7 +646,7 @@ const Product = {
       orderByView,
       orderByQuantity,
       orderByPrice,
-      limit = 10, 
+      limit = 10,
       offset = 0,
     } = req.body;
     try {
@@ -754,11 +754,11 @@ const Product = {
           });
         }
       }
-      
+
       let skip = Number(offset > 0 ? offset : 0) * Number(limit);
       let productResult = product.slice(skip, skip + Number(limit));
       const response = {
-        status: 1,
+        status: true,
         total: product.length,
         page: Number(offset) + 1,
         result: productResult,

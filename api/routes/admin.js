@@ -44,4 +44,22 @@ module.exports = (app) => {
    *         description: Success
    */
   app.post("/admin/change-password", user.changePassAdmin);
+
+  /**
+   * @swagger
+   * /admin/user:
+   *   post:
+   *     description: filter user
+   *     parameters:
+   *       - name: query
+   *         in: body
+   *       - name: orderByDate
+   *         in: body
+   *       - name: orderByStatus
+   *         in: body
+   *     responses:
+   *       200:
+   *         description: Success
+   */
+  app.post("/admin/user", user.adminFilterUser);
 };
