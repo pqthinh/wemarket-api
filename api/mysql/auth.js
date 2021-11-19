@@ -249,6 +249,62 @@ const User = {
       await conn.release();
     }
   },
+  changePassAdmin: async (req, res, next) => {
+    let conn;
+    let updatedAt = new Date();
+    try {
+      conn = await dbs.getConnection();
+      await conn.beginTransaction();
+      const body = req.body,
+        oldPassword = body.oldPassword,
+        newPassword = body.newPassword,
+        id = body.id;
+      if (!oldPassword || !newPassword || !id) {
+        return res.status(400).json({
+          error: true,
+          message: "Old pasword, new password, id required.",
+        });
+      }
+      // Check user
+      let sql1, result;
+      sql1 = `select * from admin where id =? `;
+      result = await conn.query(sql1, [id]);
+      await conn.commit();
+
+      if (result[0].length < 0) {
+        return res.status(401).json({
+          error: true,
+          message: "Admin not existed",
+        });
+      } else {
+        // check password
+        const hashOldPass = result[0][0].password;
+        if (!bcrypt.compareSync(oldPassword, hashOldPass)) {
+          return res.status(401).json({
+            error: true,
+            message: "Old password is Wrong.",
+          });
+        }
+
+        // Hash new password
+        const myPlaintextPassword = newPassword;
+        const hash = bcrypt.hashSync(myPlaintextPassword, saltRounds);
+
+        await conn.query(
+          `update admin set password = ?, updatedAt = ? where id = ?`,
+          [hash, updatedAt, id]
+        );
+        await conn.commit();
+      }
+
+      res.json({ message: "update password success", status: true });
+    } catch (err) {
+      await conn.rollback();
+      next(err);
+    } finally {
+      await conn.release();
+    }
+  },
   updateAdmin: async (req, res, next) => {
     let conn;
     try {
@@ -466,14 +522,14 @@ const User = {
   },
   adminFilterUser: async (req, res, next) => {
     let conn;
-    let { 
-      email, 
-      username, 
-      address, 
-      phone, 
+    let {
+      email,
+      username,
+      address,
+      phone,
       orderByDate,
-      orderByStatus, 
-      limit = 10, 
+      orderByStatus,
+      limit = 10,
       offset = 0,
     } = req.body;
     try {
@@ -487,21 +543,27 @@ const User = {
       let user = result[0];
 
       //search email
-      if(email) {
-        user = user.filter(x => x.email.toLowerCase().includes(email.toLowerCase()));
+      if (email) {
+        user = user.filter((x) =>
+          x.email.toLowerCase().includes(email.toLowerCase())
+        );
       }
       //search username
-      if(username) {
-        user = user.filter(x => x.username.toLowerCase().includes(username.toLowerCase()));
+      if (username) {
+        user = user.filter((x) =>
+          x.username.toLowerCase().includes(username.toLowerCase())
+        );
       }
       //search address
-      if(address) {
-        user = user.filter(x => x.address.toLowerCase().includes(address.toLowerCase()));
+      if (address) {
+        user = user.filter((x) =>
+          x.address.toLowerCase().includes(address.toLowerCase())
+        );
       }
 
       //search phone
-      if(phone) {
-        user = user.filter(x => x.phone.includes(phone));
+      if (phone) {
+        user = user.filter((x) => x.phone.includes(phone));
       }
 
       //sort by created date
@@ -511,16 +573,16 @@ const User = {
             return new Date(b.createdAt) - new Date(a.createdAt);
           });
         } else {
-          user = user.sort(function (a, b){
-          return new Date(a.createdAt) - new Date(b.createdAt)
-        });
+          user = user.sort(function (a, b) {
+            return new Date(a.createdAt) - new Date(b.createdAt);
+          });
         }
       }
 
       //sort by status
       if (orderByStatus) {
         if (orderByStatus == "desc") {
-          user = user.sort(function(a, b) {
+          user = user.sort(function (a, b) {
             return b.status.localeCompare(a.status);
           });
         } else {
@@ -529,7 +591,7 @@ const User = {
           });
         }
       }
-      
+
       let skip = Number(offset > 0 ? offset : 0) * Number(limit);
       let userResult = user.slice(skip, skip + Number(limit));
       const response = {

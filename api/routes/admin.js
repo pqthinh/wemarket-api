@@ -30,4 +30,18 @@ module.exports = (app) => {
    *         description: Success
    */
   app.post("/admin/register", user.registerAdmin);
+
+  /**
+   * @swagger
+   * /admin/change-password:
+   *   post:
+   *     description: login admin
+   *     parameters:
+   *       - name: oldPassword
+   *       - name: newPassword
+   *     responses:
+   *       200:
+   *         description: Success
+   */
+  app.post("/admin/change-password", user.changePassAdmin);
 };
