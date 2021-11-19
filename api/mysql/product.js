@@ -628,6 +628,149 @@ const Product = {
       await conn.release();
     }
   },
+  adminFilterAllProduct: async (req, res, next) => {
+    let conn;
+    let {
+      search,
+      categoryId = [],
+      minPrice,
+      maxPrice,
+      minQuantity,
+      maxQuantity,
+      maxLike,
+      maxView,
+      minLike,
+      minView,
+      orderByDate,
+      orderByLike,
+      orderByView,
+      orderByQuantity,
+      orderByPrice,
+      limit = 10, 
+      offset = 0,
+    } = req.body;
+    try {
+      //Get all product
+      conn = await dbs.getConnection();
+      await conn.beginTransaction();
+      let sql,
+        result,
+        error = [];
+      sql = `select product.*,user.uid, user.username, user.address AS userAddress, user.email, user.phone, user.avatar, category.name AS categoryName, category.icon as iconCategory
+      from category, product, user 
+      where product.deletedAt is null AND user.uid = product.uid AND category.id=product.categoryId`;
+      result = await conn.query(sql);
+      await conn.commit();
+      let product = result[0];
+      //search
+      if (search) {
+        product = product.filter(
+          (x) =>
+            x.description.toLowerCase().includes(search.toLowerCase()) ||
+            x.name.toLowerCase().includes(search.toLowerCase())
+        );
+      }
+      //search by category
+      if (categoryId.length > 0) {
+        product = product.filter((x) => categoryId.includes(x.categoryId));
+      }
+      if (minPrice) {
+        product = product.filter((x) => x.price >= minPrice);
+      }
+      if (maxPrice) {
+        product = product.filter((x) => x.price <= maxPrice);
+      }
+      if (minQuantity) {
+        product = product.filter((x) => x.quantity >= minQuantity);
+      }
+      if (maxQuantity) {
+        product = product.filter((x) => x.quantity <= maxQuantity);
+      }
+      if (minView) {
+        product = product.filter((x) => x.view >= minView);
+      }
+      if (maxView) {
+        product = product.filter((x) => x.view <= maxPrice);
+      }
+      if (minLike) {
+        product = product.filter((x) => x.like_num >= minLike);
+      }
+      if (maxLike) {
+        product = product.filter((x) => x.like_num <= maxLike);
+      }
+      //sort
+      if (orderByDate) {
+        if (orderByDate == "desc") {
+          product = product.sort(function (a, b) {
+            return new Date(b.createdAt) - new Date(a.createdAt);
+          });
+        } else {
+          product = product.sort(function (a, b) {
+            return new Date(a.createdAt) - new Date(b.createdAt);
+          });
+        }
+      }
+      if (orderByLike) {
+        if (orderByLike == "desc") {
+          product = product.sort(function (a, b) {
+            return b.like_num - a.like_num;
+          });
+        } else {
+          product = product.sort(function (a, b) {
+            return a.like_num - b.like_num;
+          });
+        }
+      }
+      if (orderByQuantity) {
+        if (orderByQuantity == "desc") {
+          product = product.sort(function (a, b) {
+            return b.quantity - a.quantity;
+          });
+        } else {
+          product = product.sort(function (a, b) {
+            return a.quantity - b.quantity;
+          });
+        }
+      }
+      if (orderByView) {
+        if (orderByView == "desc") {
+          product = product.sort(function (a, b) {
+            return b.view - a.view;
+          });
+        } else {
+          product = product.sort(function (a, b) {
+            return a.view - b.view;
+          });
+        }
+      }
+      if (orderByPrice) {
+        if (orderByPrice == "desc") {
+          product = product.sort(function (a, b) {
+            return b.price - a.price;
+          });
+        } else {
+          product = product.sort(function (a, b) {
+            return a.price - b.price;
+          });
+        }
+      }
+      
+      let skip = Number(offset > 0 ? offset : 0) * Number(limit);
+      let productResult = product.slice(skip, skip + Number(limit));
+      const response = {
+        status: 1,
+        total: product.length,
+        page: Number(offset) + 1,
+        result: productResult,
+      };
+      res.json(response);
+    } catch (err) {
+      await conn.rollback();
+      next(err);
+    } finally {
+      await conn.release();
+    }
+  },
 };
 
 module.exports = Product;

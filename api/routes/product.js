@@ -47,6 +47,52 @@ module.exports = (app) => {
    *
    */
   app.get("/admin/product", authAdmin, product.adminGetAllPost);
+  /**
+   * @swagger
+   * /admin/product/filter:
+   *   get:
+   *     description: filter all product for admin
+   *     parameters:
+   *      - name: search
+   *        in: body
+   *      - name: categoryId
+   *        in: body
+   *      - name: minPrice
+   *        in: body
+   *      - name: maxPrice
+   *        in: body
+   *      - name: minQuantity
+   *        in: body
+   *      - name: maxQuantity
+   *        in: body
+   *      - name: minLike
+   *        in: body
+   *      - name: maxLike
+   *        in: body
+   *      - name: minView
+   *        in: body
+   *      - name: maxView
+   *        in: body
+   *      - name: orderByDate
+   *        in: body
+   *      - name: orderByLike
+   *        in: body
+   *      - name: orderByQuantity
+   *        in: body
+   *      - name: orderByPrice
+   *        in: body
+   *      - name: orderByView
+   *        in: body
+   *      - name: limit
+   *        in: body
+   *      - name: offset
+   *        in: body
+   *     responses:
+   *       200:
+   *         description: Success
+   *
+   */
+  app.post("/admin/product/filter", authAdmin, product.adminFilterAllProduct);
 
   /**
    * @swagger
