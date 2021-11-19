@@ -256,9 +256,9 @@ const User = {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
       const body = req.body,
-        oldPassword = body.oldPass,
-        newPassword = body.newPass,
-        id = body.id,
+        oldPassword = body.oldPassword,
+        newPassword = body.newPassword,
+        id = body.id;
       if (!oldPassword || !newPassword || !id) {
         return res.status(400).json({
           error: true,
@@ -266,18 +266,17 @@ const User = {
         });
       }
       // Check user
-      let sql1, result1;
+      let sql1, result;
       sql1 = `select * from admin where id =? `;
-      result1 = await conn.query(sql1, [id]);
+      result = await conn.query(sql1, [id]);
       await conn.commit();
 
-      if (result1[0].length < 0) {
+      if (result[0].length < 0) {
         return res.status(401).json({
           error: true,
           message: "Admin not existed",
         });
       } else {
-
         // check password
         const hashOldPass = result[0][0].password;
         if (!bcrypt.compareSync(oldPassword, hashOldPass)) {
@@ -287,20 +286,18 @@ const User = {
           });
         }
 
-        let sql, result;
-
         // Hash new password
         const myPlaintextPassword = newPassword;
         const hash = bcrypt.hashSync(myPlaintextPassword, saltRounds);
 
-        sql = `update admin 
-        set password = ?, updatedAt = ? 
-        where id = ?`;
-        result = await conn.query(sql, [hash, updatedAt, id]);
+        await conn.query(
+          `update admin set password = ?, updatedAt = ? where id = ?`,
+          [hash, updatedAt, id]
+        );
         await conn.commit();
       }
 
-      res.json({ status: "update success" });
+      res.json({ message: "update password success", status: true });
     } catch (err) {
       await conn.rollback();
       next(err);
@@ -547,20 +544,26 @@ const User = {
 
       //search email
       if (email) {
-        user = user.filter(x => x.email.toLowerCase().includes(email.toLowerCase()));
+        user = user.filter((x) =>
+          x.email.toLowerCase().includes(email.toLowerCase())
+        );
       }
       //search username
       if (username) {
-        user = user.filter(x => x.username.toLowerCase().includes(username.toLowerCase()));
+        user = user.filter((x) =>
+          x.username.toLowerCase().includes(username.toLowerCase())
+        );
       }
       //search address
       if (address) {
-        user = user.filter(x => x.address.toLowerCase().includes(address.toLowerCase()));
+        user = user.filter((x) =>
+          x.address.toLowerCase().includes(address.toLowerCase())
+        );
       }
 
       //search phone
       if (phone) {
-        user = user.filter(x => x.phone.includes(phone));
+        user = user.filter((x) => x.phone.includes(phone));
       }
 
       //sort by created date
@@ -571,7 +574,7 @@ const User = {
           });
         } else {
           user = user.sort(function (a, b) {
-            return new Date(a.createdAt) - new Date(b.createdAt)
+            return new Date(a.createdAt) - new Date(b.createdAt);
           });
         }
       }
