@@ -464,6 +464,88 @@ const User = {
       await conn.release();
     }
   },
+  adminFilterUser: async (req, res, next) => {
+    let conn;
+    let { 
+      email, 
+      username, 
+      address, 
+      phone, 
+      orderByDate,
+      orderByStatus, 
+      limit = 10, 
+      offset = 0,
+    } = req.body;
+    try {
+      conn = await dbs.getConnection();
+      await conn.beginTransaction();
+
+      let result;
+      sql = `select * from user where deletedAt is null`;
+      result = await conn.query(sql);
+      await conn.commit();
+      let user = result[0];
+
+      //search email
+      if(email) {
+        user = user.filter(x => x.email.toLowerCase().includes(email.toLowerCase()));
+      }
+      //search username
+      if(username) {
+        user = user.filter(x => x.username.toLowerCase().includes(username.toLowerCase()));
+      }
+      //search address
+      if(address) {
+        user = user.filter(x => x.address.toLowerCase().includes(address.toLowerCase()));
+      }
+
+      //search phone
+      if(phone) {
+        user = user.filter(x => x.phone.includes(phone));
+      }
+
+      //sort by created date
+      if (orderByDate) {
+        if (orderByDate == "desc") {
+          user = user.sort(function (a, b) {
+            return new Date(b.createdAt) - new Date(a.createdAt);
+          });
+        } else {
+          user = user.sort(function (a, b){
+          return new Date(a.createdAt) - new Date(b.createdAt)
+        });
+        }
+      }
+
+      //sort by status
+      if (orderByStatus) {
+        if (orderByStatus == "desc") {
+          user = user.sort(function(a, b) {
+            return b.status.localeCompare(a.status);
+          });
+        } else {
+          user = user.sort(function (a, b) {
+            return a.status.localeCompare(b.status);
+          });
+        }
+      }
+      
+      let skip = Number(offset > 0 ? offset : 0) * Number(limit);
+      let userResult = user.slice(skip, skip + Number(limit));
+      const response = {
+        status: 1,
+        length: user.length,
+        page: Number(offset) + 1,
+        result: userResult,
+      };
+      res.json(response);
+    } catch (err) {
+      await conn.rollback();
+      next(err);
+    } finally {
+      await conn.release();
+    }
+  },
 };
 
 module.exports = User;

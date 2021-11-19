@@ -94,4 +94,27 @@ module.exports = (app) => {
    *
    */
   app.get("/user/list", user.listAllUserForAdmin);
+  /**
+   * @swagger
+   * /user/filter:
+   *   post:
+   *     description: filter user
+   *     parameters:
+   *       - name: username
+   *         in: body
+   *       - name: address
+   *         in: body
+   *       - name: email
+   *         in: body
+   *       - name: phone
+   *         in: body
+   *       - name: orderByDate
+   *         in: body
+   *       - name: orderByStatus
+   *         in: body
+   *     responses:
+   *       200:
+   *         description: Success
+   */
+  app.post("/user/filter", user.adminFilterUser);
 };
