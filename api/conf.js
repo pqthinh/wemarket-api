@@ -34,6 +34,6 @@ module.exports = {
 //     user: "root",
 //     password: "",
 //     database: "wemarket",
-//     port: 3306,
+//     port: 3307,
 //   },
 // };

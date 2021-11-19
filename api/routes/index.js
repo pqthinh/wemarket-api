@@ -9,5 +9,6 @@ require("./product")(router);
 require("./category")(router);
 require("./auth")(router);
 require("./admin")(router);
+require("./notify")(router);
 
 module.exports = router;
