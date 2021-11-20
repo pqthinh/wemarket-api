@@ -19,6 +19,20 @@ module.exports = (app) => {
      *
      */
     app.get("/common/notify" ,notify.getListNotify );
+
+    /**
+   * @swagger
+   * /admin/active-notify:
+   *   post:
+   *     description: active notify
+   *     parameters:
+   *       - name: uid
+   *         in: body
+   *     responses:
+   *       200:
+   *         description: Success
+   */
+    app.get("/admin/active-notify", notify.userReadNotify);
     
 };
   
