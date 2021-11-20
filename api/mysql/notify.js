@@ -48,7 +48,7 @@ const Notify = {
              where notify.uid = ?`;
       result = await conn.query(sql, [updateAt, uid]);
       await conn.commit();
-      console.log(result)
+
       const response = {
         result: "success",
         status: 1,
