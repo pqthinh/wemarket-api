@@ -18,22 +18,22 @@
 //   },
 // };
 
-module.exports = {
-  poolConfig: {
-    host: "remotemysql.com",
-    user: "SBHs6vqy59",
-    password: "MzsvcRThPL",
-    database: "SBHs6vqy59",
-    port: 3306,
-  },
-};
-
 // module.exports = {
 //   poolConfig: {
-//     host: "localhost",
-//     user: "root",
-//     password: "",
-//     database: "wemarket",
-//     port: 3307,
+//     host: "remotemysql.com",
+//     user: "SBHs6vqy59",
+//     password: "MzsvcRThPL",
+//     database: "SBHs6vqy59",
+//     port: 3306,
 //   },
 // };
+
+module.exports = {
+  poolConfig: {
+    host: "localhost",
+    user: "root",
+    password: "",
+    database: "wemarket",
+    port: 3307,
+  },
+};

@@ -36,22 +36,27 @@ const Notify = {
 
   // api update trang thai isRead 0=>1 , updateAt= new Date()
 
-  userReadNotify: async (req, res, next) => {
+  userGetNotify: async (req, res, next) => {
     let uid = req.body.uid;
-    updateAt= new Date()
+    let idNotify = req.body.id;
+    updateAt = new Date();
     try {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
+      let sql1, result1;
       let sql, result;
-      sql = `update notify
+      sql1 = `update notify
              set isRead = 1 , updatedAt = ?
-             where notify.uid = ?`;
-      result = await conn.query(sql, [updateAt, uid]);
+             where notify.uid = ? and notify.id = ? `;
+      result1 = await conn.query(sql1, [updateAt, uid, idNotify]);
       await conn.commit();
+      sql = ` select * from notify`;
+      result = await conn.query(sql);
 
       const response = {
         result: "success",
         status: 1,
+        data: result,
       };
       res.json(response);
     } catch (err) {

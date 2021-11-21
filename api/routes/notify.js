@@ -22,17 +22,19 @@ module.exports = (app) => {
 
     /**
    * @swagger
-   * /admin/active-notify:
-   *   post:
-   *     description: active notify
+   * /user/get-notify:
+   *   get:
+   *     description: get notify
    *     parameters:
    *       - name: uid
+   *         in: body
+   *       - name: id
    *         in: body
    *     responses:
    *       200:
    *         description: Success
    */
-    app.get("/admin/active-notify", notify.userReadNotify);
+    app.get("/user/get-notify", notify.userGetNotify);
     
 };
   
