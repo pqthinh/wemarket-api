@@ -2,6 +2,8 @@ const dbs = require("./dbs");
 const utils = require("../helpers/jwt");
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
+const nodemailer = require("nodemailer");
+const smtpTransport = require("nodemailer-smtp-transport");
 
 const User = {
   getAdmin: async (req, res, next) => {
@@ -586,6 +588,75 @@ const User = {
         result: userResult,
       };
       res.json(response);
+    } catch (err) {
+      await conn.rollback();
+      next(err);
+    } finally {
+      await conn.release();
+    }
+  },
+  sendEmailResetPass: async (req, res, next) => {
+    const newpass = Math.random().toString(36).slice(-12);
+    const emailto = req.body.email;
+
+    let conn = await dbs.getConnection();
+    await conn.beginTransaction();
+
+    let sqlCheckExist = "select * from admin where email=?";
+    resCheckExist = await conn.query(sqlCheckExist, [emailto]);
+    await conn.commit();
+
+    if (resCheckExist[0].length == 0) {
+      return res.status(401).json({
+        error: true,
+        message: "Khong tim thay email trong he thong",
+      });
+    } else if (resCheckExist[0].length > 1) {
+      return res.status(401).json({
+        error: true,
+        message: "Loi he thong",
+      });
+    }
+
+    const transporter = nodemailer.createTransport(
+      smtpTransport({
+        service: "gmail",
+        host: "smtp.gmail.com",
+        auth: {
+          user: process.env.EMAIL,
+          pass: process.env.EMAIL_PASSWORD,
+        },
+        secure: false,
+      })
+    );
+    var mailOptions = {
+      from: process.env.EMAIL,
+      to: emailto,
+      subject: "Reset password of Admin wemarket",
+      html: `<h1>Welcome</h1> <p>New password:<span style="background: #f0f0f0" > ${newpass} </span> </p> <br/> Let create new password!`,
+    };
+    // send email
+    transporter.sendMail(mailOptions, function (error, info) {
+      if (error) {
+        console.log(error);
+      } else {
+        console.log("Email sent: " + info.response);
+      }
+    });
+
+    // Cap nhat mat khau moi vao csdl
+    try {
+      conn = await dbs.getConnection();
+      await conn.beginTransaction();
+
+      let sql;
+      const myPlaintextPassword = newpass;
+      const hash = bcrypt.hashSync(myPlaintextPassword, saltRounds);
+
+      sql = `update admin set password = ?  where email = ? `;
+      await conn.query(sql, [hash, emailto]);
+      await conn.commit();
+      res.json({ status: "200 OK", msg: "Check your email to reset password" });
     } catch (err) {
       await conn.rollback();
       next(err);

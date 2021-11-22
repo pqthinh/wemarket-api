@@ -62,4 +62,18 @@ module.exports = (app) => {
    *         description: Success
    */
   app.post("/admin/user", user.adminFilterUser);
+
+  /**
+   * @swagger
+   * /admin/reset-password:
+   *   post:
+   *     description: reset-password
+   *     parameters:
+   *       - name: email
+   *         in: body
+   *     responses:
+   *       200:
+   *         description: Success
+   */
+  app.post("/admin/reset-password", user.sendEmailResetPass);
 };
