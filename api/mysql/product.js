@@ -807,6 +807,112 @@ const Product = {
       await conn.release();
     }
   },
+  createBookmark: async (req, res, next) => {
+    let conn;
+    let {
+      uid,
+      productId
+    } = req.body;
+    try {
+      //validate
+      if (!uid || !productId) {
+        const response = {
+          status: false,
+          message: "uid or productId is required"
+        };
+        res.json(response);
+        return;
+      }
+      conn = await dbs.getConnection();
+      await conn.beginTransaction();
+
+      //check if bookmark is existed
+      let r = await conn.query(`select * from bookmark where uid = ? AND productId = ?`, [uid, productId]);
+      await conn.commit;
+      let bookmark = r[0];
+      if(bookmark.length > 0) {
+        const response = {
+          status: false,
+          message: "Bookmark is existed"
+        };
+        res.json(response);
+        return;
+      }
+
+      //create bookmark and update like_num in product
+      let sql;
+      sql = `INSERT INTO bookmark ( uid, productId) VALUES (?, ?)`;
+      await conn.query(sql, [uid, productId]);
+      await conn.query(
+        `update product set like_num = like_num+1 where id=? AND status='active'`,
+        [productId]);
+      await conn.commit();
+
+      const response = {
+        status: true,
+        message: "success"
+      };
+      res.json(response);
+    } catch (err) {
+      await conn.rollback();
+      next(err);
+    } finally {
+      await conn.release();
+    }
+  },
+  deleteBookmark: async (req, res, next) => {
+    let conn;
+    let {
+      uid,
+      productId
+    } = req.body;
+    try {
+      //validate
+      if (!uid || !productId) {
+        const response = {
+          status: false,
+          message: "uid or productId is required"
+        };
+        res.json(response);
+        return;
+      }
+      conn = await dbs.getConnection();
+      await conn.beginTransaction();
+
+      //check if bookmark is existed
+      let r = await conn.query(`select * from bookmark where uid = ? AND productId = ?`, [uid, productId]);
+      await conn.commit;
+      let bookmark = r[0];
+      if(bookmark.length < 1) {
+        const response = {
+          status: false,
+          message: "Bookmark is not existed"
+        };
+        res.json(response);
+        return;
+      }
+
+      //delete bookmark and update like_num in product
+      let sql;
+      sql = `delete from bookmark where uid = ? AND productId = ?`;
+      await conn.query(sql, [uid, productId]);
+      await conn.query(
+        `update product set like_num = like_num - 1 where id=? AND status='active'`,
+        [productId]);
+      await conn.commit();
+
+      const response = {
+        status: true,
+        message: "success"
+      };
+      res.json(response);
+    } catch (err) {
+      await conn.rollback();
+      next(err);
+    } finally {
+      await conn.release();
+    }
+  },
 };
 
 module.exports = Product;
