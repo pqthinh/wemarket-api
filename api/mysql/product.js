@@ -280,8 +280,8 @@ const Product = {
       let date = createdAt.getDate();
       let month = createdAt.getMonth()+1;
       let year = createdAt.getFullYear();
-      let title = `Người dùng ${user.username} đã tạo đơn hàng ${code}`;
-      let content = `Người dùng ${user.username} đã tạo đơn hàng ${code} vào lúc ${h}:${m}:${s} ngày ${date}/${month}/${year}. Đơn hàng này đang chờ được duyệt`;
+      let title = `Người dùng ${user.username} đã tạo sản phẩm ${code}`;
+      let content = `Người dùng ${user.username} đã tạo sản phẩm ${code} vào lúc ${h}:${m}:${s} ngày ${date}/${month}/${year}. Sản phẩm này đang chờ được duyệt`;
       for(let admin of admins) {
         adminNotis.push([admin.id,title,content]);
       }
