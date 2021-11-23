@@ -250,4 +250,36 @@ module.exports = (app) => {
    *
    */
   app.post("/common/product/filter", product.filterActiveProduct);
+  /**
+   * @swagger
+   * /bookmark/create:
+   *   post:
+   *     description: create bookmark
+   *     parameters:
+   *      - name: uid
+   *        in: body
+   *      - name: productId
+   *        in: body
+   *     responses:
+   *       200:
+   *         description: Success
+   *
+   */
+  app.post("/bookmark/create", product.createBookmark);
+  /**
+   * @swagger
+   * /bookmark/delete:
+   *   post:
+   *     description: create bookmark
+   *     parameters:
+   *      - name: uid
+   *        in: body
+   *      - name: productId
+   *        in: body
+   *     responses:
+   *       200:
+   *         description: Success
+   *
+   */
+  app.post("/bookmark/delete", product.deleteBookmark);
 };
