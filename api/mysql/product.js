@@ -8,14 +8,20 @@ const Product = {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
       let sql, result;
-      sql = `select product.*,user.*, category.name as categoryName, category.icon as categoryIcon from user, product, category where product.status ="active" and user.uid=product.uid and product.categoryId=category.id and product.deletedAt is null`;
+      sql = `select product.*,user.username,user.address AS userAddress,user.email,user.phone,user.avatar, category.name as categoryName, category.icon as categoryIcon 
+      from user, product, category 
+      where product.status ="active" and user.uid=product.uid and product.categoryId=category.id and product.deletedAt is null`;
 
       result = await conn.query(sql);
       let product = result[0];
 
+      let topViewProduct = product.sort(function(a, b) {return b.view - a.view}).slice(0, 10);
+      let topLikeProduct = product.sort(function(a, b) {return b.like_num - a.like_num}).slice(0, 10);
+      let skip = Number(offset > 0 ? offset : 0) * Number(limit);
+      let productResult = product.slice(skip, skip + Number(limit));
       if (lat && lng) {
         let R = 6371; //km
-        product.forEach((x) => {
+        productResult.forEach((x) => {
           let dLat = (lat - x.lat) * (Math.PI / 180);
           let dLon = (lng - x.lng) * (Math.PI / 180);
           let lat1 = x.lat * (Math.PI / 180);
@@ -30,17 +36,21 @@ const Product = {
           x.distance = Math.round(R * c * 100) / 100;
         });
       }
-
-      let skip = Number(offset > 0 ? offset : 0) * Number(limit);
-      product = product.slice(skip, skip + Number(limit));
-      sqlCount = `select count(*) as total from product where status ="active" and product.deletedAt is null`;
-      const total = await conn.query(sqlCount);
-      await conn.commit();
+      productResult.forEach((x) => {
+        x.isTop = false;
+        x.isFav = false;
+        if(topViewProduct.filter(tv => tv.id == x.id).length > 0){
+          x.isTop = true
+        }
+        if(topLikeProduct.filter(tl => tl.id == x.id).length > 0){
+          x.isFav = true
+        }
+      });
 
       const response = {
-        total: total[0][0].total,
+        total: product.length,
         page: Number(offset) + 1,
-        result: product,
+        result: productResult,
       };
       res.json(response);
     } catch (err) {
@@ -211,7 +221,9 @@ const Product = {
 
       let sqlUser, result;
       let tagStr = JSON.stringify(tag);
-      let code = new Date().getTime();
+      let time = createdAt.getTime()
+      let code = `PRODUCT${time}`;
+
 
       sqlUser = `Select * from user where uid = ?`;
       let hasUser = await conn.query(sqlUser, [uid]);
@@ -221,6 +233,7 @@ const Product = {
         res.json({ error: "User Not Existed" });
         return;
       }
+      let user = hasUser[0][0]; 
 
       //create product
       sql = `INSERT INTO product (code, name, description, categoryId, price, status, uid, createdAt, updatedAt, address, quantity, lat, lng, image, tag) VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
@@ -243,14 +256,37 @@ const Product = {
       await conn.commit();
 
       let idProductAfterCreate = result[0].insertId;
-      let valuesImg = [];
-      images.map((img) => {
-        valuesImg = [...valuesImg, [idProductAfterCreate, img]];
-      });
+      if(images.length > 0) {
+        let valuesImg = [];
+        images.map((img) => {
+          valuesImg = [...valuesImg, [idProductAfterCreate, img]];
+        });
+  
+        //create images
+        sql = `INSERT INTO image ( productId, url) VALUES ?`;
+        result = await conn.query(sql, [valuesImg]);
+        await conn.commit();
+      }
 
-      //create images
-      sql = `INSERT INTO image ( productId, url) VALUES ?`;
-      result = await conn.query(sql, [valuesImg]);
+      //create notify to admin
+      //get user
+      let adminQuery = await conn.query(`select * from admin where deletedAt is null `);
+      await conn.commit();
+      let admins = adminQuery[0];
+      let adminNotis = [];
+      let h = createdAt.getHours();
+      let m = createdAt.getMinutes();
+      let s = createdAt.getSeconds();
+      let date = createdAt.getDate();
+      let month = createdAt.getMonth()+1;
+      let year = createdAt.getFullYear();
+      let title = `Người dùng ${user.username} đã tạo đơn hàng ${code}`;
+      let content = `Người dùng ${user.username} đã tạo đơn hàng ${code} vào lúc ${h}:${m}:${s} ngày ${date}/${month}/${year}. Đơn hàng này đang chờ được duyệt`;
+      for(let admin of admins) {
+        adminNotis.push([admin.id,title,content]);
+      }
+      let sqlNoti = `INSERT INTO admin_notify ( admin_id, title, content) VALUES ?`;
+      await conn.query(sqlNoti, [adminNotis]);
       await conn.commit();
 
       const response = {
