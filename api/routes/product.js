@@ -57,31 +57,10 @@ module.exports = (app) => {
    *        in: body
    *      - name: categoryId
    *        in: body
-   *      - name: minPrice
+   *      - name: sort
    *        in: body
-   *      - name: maxPrice
-   *        in: body
-   *      - name: minQuantity
-   *        in: body
-   *      - name: maxQuantity
-   *        in: body
-   *      - name: minLike
-   *        in: body
-   *      - name: maxLike
-   *        in: body
-   *      - name: minView
-   *        in: body
-   *      - name: maxView
-   *        in: body
-   *      - name: orderByDate
-   *        in: body
-   *      - name: orderByLike
-   *        in: body
-   *      - name: orderByQuantity
-   *        in: body
-   *      - name: orderByPrice
-   *        in: body
-   *      - name: orderByView
+   *        value: [price, quantity, view, ...]
+   *      - name: type
    *        in: body
    *      - name: limit
    *        in: body

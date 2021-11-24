@@ -15,8 +15,16 @@ const Product = {
       result = await conn.query(sql);
       let product = result[0];
 
-      let topViewProduct = product.sort(function(a, b) {return b.view - a.view}).slice(0, 10);
-      let topLikeProduct = product.sort(function(a, b) {return b.like_num - a.like_num}).slice(0, 10);
+      let topViewProduct = product
+        .sort(function (a, b) {
+          return b.view - a.view;
+        })
+        .slice(0, 10);
+      let topLikeProduct = product
+        .sort(function (a, b) {
+          return b.like_num - a.like_num;
+        })
+        .slice(0, 10);
       let skip = Number(offset > 0 ? offset : 0) * Number(limit);
       let productResult = product.slice(skip, skip + Number(limit));
       if (lat && lng) {
@@ -39,11 +47,11 @@ const Product = {
       productResult.forEach((x) => {
         x.isTop = false;
         x.isFav = false;
-        if(topViewProduct.filter(tv => tv.id == x.id).length > 0){
-          x.isTop = true
+        if (topViewProduct.filter((tv) => tv.id == x.id).length > 0) {
+          x.isTop = true;
         }
-        if(topLikeProduct.filter(tl => tl.id == x.id).length > 0){
-          x.isFav = true
+        if (topLikeProduct.filter((tl) => tl.id == x.id).length > 0) {
+          x.isFav = true;
         }
       });
 
@@ -221,9 +229,8 @@ const Product = {
 
       let sqlUser, result;
       let tagStr = JSON.stringify(tag);
-      let time = createdAt.getTime()
+      let time = createdAt.getTime();
       let code = `PRODUCT${time}`;
-
 
       sqlUser = `Select * from user where uid = ?`;
       let hasUser = await conn.query(sqlUser, [uid]);
@@ -233,7 +240,7 @@ const Product = {
         res.json({ error: "User Not Existed" });
         return;
       }
-      let user = hasUser[0][0]; 
+      let user = hasUser[0][0];
 
       //create product
       sql = `INSERT INTO product (code, name, description, categoryId, price, status, uid, createdAt, updatedAt, address, quantity, lat, lng, image, tag) VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
@@ -256,12 +263,12 @@ const Product = {
       await conn.commit();
 
       let idProductAfterCreate = result[0].insertId;
-      if(images.length > 0) {
+      if (images.length > 0) {
         let valuesImg = [];
         images.map((img) => {
           valuesImg = [...valuesImg, [idProductAfterCreate, img]];
         });
-  
+
         //create images
         sql = `INSERT INTO image ( productId, url) VALUES ?`;
         result = await conn.query(sql, [valuesImg]);
@@ -270,7 +277,9 @@ const Product = {
 
       //create notify to admin
       //get user
-      let adminQuery = await conn.query(`select * from admin where deletedAt is null `);
+      let adminQuery = await conn.query(
+        `select * from admin where deletedAt is null `
+      );
       await conn.commit();
       let admins = adminQuery[0];
       let adminNotis = [];
@@ -278,12 +287,12 @@ const Product = {
       let m = createdAt.getMinutes();
       let s = createdAt.getSeconds();
       let date = createdAt.getDate();
-      let month = createdAt.getMonth()+1;
+      let month = createdAt.getMonth() + 1;
       let year = createdAt.getFullYear();
       let title = `Người dùng ${user.username} đã tạo sản phẩm ${code}`;
       let content = `Người dùng ${user.username} đã tạo sản phẩm ${code} vào lúc ${h}:${m}:${s} ngày ${date}/${month}/${year}. Sản phẩm này đang chờ được duyệt`;
-      for(let admin of admins) {
-        adminNotis.push([admin.id,title,content]);
+      for (let admin of admins) {
+        adminNotis.push([admin.id, title, content]);
       }
       let sqlNoti = `INSERT INTO admin_notify ( admin_id, title, content) VALUES ?`;
       await conn.query(sqlNoti, [adminNotis]);
@@ -669,126 +678,84 @@ const Product = {
     let {
       search,
       categoryId = [],
-      minPrice,
-      maxPrice,
-      minQuantity,
-      maxQuantity,
-      maxLike,
-      maxView,
-      minLike,
-      minView,
-      orderByDate,
-      orderByLike,
-      orderByView,
-      orderByQuantity,
-      orderByPrice,
+      sort = "createdAt",
+      type = "desc",
       limit = 10,
       offset = 0,
     } = req.body;
     try {
+      console.log(sort, type);
       //Get all product
       conn = await dbs.getConnection();
       await conn.beginTransaction();
-      let sql,
-        result,
-        error = [];
+      let sql, result;
+
       sql = `select product.*,user.uid, user.username, user.address AS userAddress, user.email, user.phone, user.avatar, category.name AS categoryName, category.icon as iconCategory
       from category, product, user 
       where product.deletedAt is null AND user.uid = product.uid AND category.id=product.categoryId`;
       result = await conn.query(sql);
       await conn.commit();
       let product = result[0];
+
       //search
       if (search) {
         product = product.filter(
           (x) =>
             x.description.toLowerCase().includes(search.toLowerCase()) ||
-            x.name.toLowerCase().includes(search.toLowerCase())
+            x.name.toLowerCase().includes(search.toLowerCase()) ||
+            x.categoryName.toLowerCase().includes(search.toLowerCase()) ||
+            x.email.toLowerCase().includes(search.toLowerCase()) ||
+            x.username.toLowerCase().includes(search.toLowerCase())
         );
       }
       //search by category
       if (categoryId.length > 0) {
         product = product.filter((x) => categoryId.includes(x.categoryId));
       }
-      if (minPrice) {
-        product = product.filter((x) => x.price >= minPrice);
+
+      // sort
+      if (sort == "price") {
+        product = product.sort((a, b) => {
+          if (type == "asc") return a.price < b.price;
+          return a.price > b.price;
+        });
       }
-      if (maxPrice) {
-        product = product.filter((x) => x.price <= maxPrice);
+      if (sort == "quantity") {
+        product = product.sort((a, b) => {
+          if (type == "asc") return a.quantity < b.quantity;
+          return a.quantity > b.quantity;
+        });
       }
-      if (minQuantity) {
-        product = product.filter((x) => x.quantity >= minQuantity);
+      if (sort == "view") {
+        product = product.sort((a, b) => {
+          if (type == "asc") return a.view < b.view;
+          return a.view > b.view;
+        });
       }
-      if (maxQuantity) {
-        product = product.filter((x) => x.quantity <= maxQuantity);
+      if (sort == "like_num") {
+        product = product.sort((a, b) => {
+          if (type == "asc") return a.like_num < b.like_num;
+          return a.like_num > b.like_num;
+        });
       }
-      if (minView) {
-        product = product.filter((x) => x.view >= minView);
+      if (sort == "category") {
+        product = product.sort((a, b) => {
+          if (type == "asc") return a.category.localeCompare(b.category);
+          return !a.category.localeCompare(b.category);
+        });
       }
-      if (maxView) {
-        product = product.filter((x) => x.view <= maxPrice);
+      if (sort == "status") {
+        product = product.sort((a, b) => {
+          if (type == "asc") return a.status.localeCompare(b.status);
+          return !a.status.localeCompare(b.status);
+        });
       }
-      if (minLike) {
-        product = product.filter((x) => x.like_num >= minLike);
-      }
-      if (maxLike) {
-        product = product.filter((x) => x.like_num <= maxLike);
-      }
-      //sort
-      if (orderByDate) {
-        if (orderByDate == "desc") {
-          product = product.sort(function (a, b) {
-            return new Date(b.createdAt) - new Date(a.createdAt);
-          });
-        } else {
-          product = product.sort(function (a, b) {
+      if (sort == "createdAt") {
+        product = product.sort((a, b) => {
+          if (type == "asc")
             return new Date(a.createdAt) - new Date(b.createdAt);
-          });
-        }
-      }
-      if (orderByLike) {
-        if (orderByLike == "desc") {
-          product = product.sort(function (a, b) {
-            return b.like_num - a.like_num;
-          });
-        } else {
-          product = product.sort(function (a, b) {
-            return a.like_num - b.like_num;
-          });
-        }
-      }
-      if (orderByQuantity) {
-        if (orderByQuantity == "desc") {
-          product = product.sort(function (a, b) {
-            return b.quantity - a.quantity;
-          });
-        } else {
-          product = product.sort(function (a, b) {
-            return a.quantity - b.quantity;
-          });
-        }
-      }
-      if (orderByView) {
-        if (orderByView == "desc") {
-          product = product.sort(function (a, b) {
-            return b.view - a.view;
-          });
-        } else {
-          product = product.sort(function (a, b) {
-            return a.view - b.view;
-          });
-        }
-      }
-      if (orderByPrice) {
-        if (orderByPrice == "desc") {
-          product = product.sort(function (a, b) {
-            return b.price - a.price;
-          });
-        } else {
-          product = product.sort(function (a, b) {
-            return a.price - b.price;
-          });
-        }
+          return new Date(b.createdAt) - new Date(a.createdAt);
+        });
       }
 
       let skip = Number(offset > 0 ? offset : 0) * Number(limit);
@@ -801,6 +768,11 @@ const Product = {
       };
       res.json(response);
     } catch (err) {
+      res.json({
+        status: false,
+        message: "Get product failed",
+        result: {},
+      });
       await conn.rollback();
       next(err);
     } finally {
@@ -809,16 +781,13 @@ const Product = {
   },
   createBookmark: async (req, res, next) => {
     let conn;
-    let {
-      uid,
-      productId
-    } = req.body;
+    let { uid, productId } = req.body;
     try {
       //validate
       if (!uid || !productId) {
         const response = {
           status: false,
-          message: "uid or productId is required"
+          message: "uid or productId is required",
         };
         res.json(response);
         return;
@@ -827,13 +796,16 @@ const Product = {
       await conn.beginTransaction();
 
       //check if bookmark is existed
-      let r = await conn.query(`select * from bookmark where uid = ? AND productId = ?`, [uid, productId]);
+      let r = await conn.query(
+        `select * from bookmark where uid = ? AND productId = ?`,
+        [uid, productId]
+      );
       await conn.commit;
       let bookmark = r[0];
-      if(bookmark.length > 0) {
+      if (bookmark.length > 0) {
         const response = {
           status: false,
-          message: "Bookmark is existed"
+          message: "Bookmark is existed",
         };
         res.json(response);
         return;
@@ -845,12 +817,13 @@ const Product = {
       await conn.query(sql, [uid, productId]);
       await conn.query(
         `update product set like_num = like_num+1 where id=? AND status='active'`,
-        [productId]);
+        [productId]
+      );
       await conn.commit();
 
       const response = {
         status: true,
-        message: "success"
+        message: "success",
       };
       res.json(response);
     } catch (err) {
@@ -862,16 +835,13 @@ const Product = {
   },
   deleteBookmark: async (req, res, next) => {
     let conn;
-    let {
-      uid,
-      productId
-    } = req.body;
+    let { uid, productId } = req.body;
     try {
       //validate
       if (!uid || !productId) {
         const response = {
           status: false,
-          message: "uid or productId is required"
+          message: "uid or productId is required",
         };
         res.json(response);
         return;
@@ -880,13 +850,16 @@ const Product = {
       await conn.beginTransaction();
 
       //check if bookmark is existed
-      let r = await conn.query(`select * from bookmark where uid = ? AND productId = ?`, [uid, productId]);
+      let r = await conn.query(
+        `select * from bookmark where uid = ? AND productId = ?`,
+        [uid, productId]
+      );
       await conn.commit;
       let bookmark = r[0];
-      if(bookmark.length < 1) {
+      if (bookmark.length < 1) {
         const response = {
           status: false,
-          message: "Bookmark is not existed"
+          message: "Bookmark is not existed",
         };
         res.json(response);
         return;
@@ -898,12 +871,13 @@ const Product = {
       await conn.query(sql, [uid, productId]);
       await conn.query(
         `update product set like_num = like_num - 1 where id=? AND status='active'`,
-        [productId]);
+        [productId]
+      );
       await conn.commit();
 
       const response = {
         status: true,
-        message: "success"
+        message: "success",
       };
       res.json(response);
     } catch (err) {
