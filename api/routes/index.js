@@ -10,5 +10,6 @@ require("./category")(router);
 require("./auth")(router);
 require("./admin")(router);
 require("./notify")(router);
+require("./order")(router);
 
 module.exports = router;
