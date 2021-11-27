@@ -19,7 +19,8 @@ const options = {
     "./api/routes/auth.js",
     "./api/routes/category.js",
     "./api/routes/admin.js",
-    "./api/routes/notify.js"
+    "./api/routes/notify.js",
+    "./api/routes/order.js",
   ],
 };
 const specs = swaggerJsdoc(options);

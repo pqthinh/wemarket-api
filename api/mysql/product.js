@@ -2,12 +2,11 @@ const dbs = require("./dbs");
 
 const Product = {
   getAllPostActive: async (req, res, next) => {
-    let conn,
-      { limit = 10, offset = 0, lat, lng } = req.query;
+    let conn = await dbs.getConnection();
     try {
-      conn = await dbs.getConnection();
       await conn.beginTransaction();
       let sql, result;
+      let { limit = 10, offset = 0, lat, lng } = req.query;
       sql = `select product.*,user.username,user.address AS userAddress,user.email,user.phone,user.avatar, category.name as categoryName, category.icon as categoryIcon 
       from user, product, category 
       where product.status ="active" and user.uid=product.uid and product.categoryId=category.id and product.deletedAt is null`;
