@@ -128,6 +128,102 @@ const Product = {
       await conn.release();
     }
   },
+  adminGetProductDetail: async (req, res, next) => {
+    let conn;
+    let { idProduct, idAdmin } = req.query;
+    try {
+      conn = await dbs.getConnection();
+      await conn.beginTransaction();
+      //validate
+      if (!idProduct || !idAdmin) {
+        res.json({ error: "idProduct and idAdmin are required" });
+        return;
+      }
+      let sql, result;
+      sql = `select product.*,user.username,user.address AS userAddress,user.email,user.phone,user.avatar, category.name as categoryName, category.icon as categoryIcon 
+      from user, product, category 
+      where user.uid=product.uid and product.categoryId=category.id and product.deletedAt is null and product.id = ?`
+
+      result = await conn.query(sql, [idProduct]);
+
+      if (result[0].length < 1) {
+        res.json({ error: "Product Not Existed" });
+        return;
+      }
+      images = await conn.query(
+        "select url from image where productId=? AND deletedAt is null",
+        [idProduct]
+      );
+      await conn.query(
+        `update product set view= view+1 where id=? AND status='active'`,
+        [idProduct]
+      );
+
+      await conn.commit();
+      let product = result[0][0];
+      const data = {
+        ...product,
+        images: images[0].map((img) => img.url),
+      };
+      const response = {
+        message: "success",
+        status: 1,
+        result: data,
+      };
+      res.json(response);
+    } catch (err) {
+      await conn.rollback();
+      next(err);
+    } finally {
+      await conn.release();
+    }
+  },
+  sellerGetProductDetail: async (req, res, next) => {
+    let conn;
+    let { idProduct, uid } = req.query;
+    try {
+      //validate
+      if (!idProduct || !uid) {
+        res.json({ error: "idProduct and uid are required" });
+        return;
+      }
+      conn = await dbs.getConnection();
+      await conn.beginTransaction();
+      let sql, result;
+      sql = `select product.*,user.username,user.address AS userAddress,user.email,user.phone,user.avatar, category.name as categoryName, category.icon as categoryIcon 
+      from user, product, category 
+      where user.uid=product.uid and product.categoryId=category.id and product.deletedAt is null and product.id = ?`
+
+      result = await conn.query(sql, [idProduct]);
+
+      if (result[0].length < 1 || result[0][0].uid != uid) {
+        res.json({ error: "Product Not Existed" });
+        return;
+      }
+      images = await conn.query(
+        "select url from image where productId=? AND deletedAt is null",
+        [idProduct]
+      );
+
+      await conn.commit();
+      let product = result[0][0];
+      const data = {
+        ...product,
+        images: images[0].map((img) => img.url),
+      };
+      const response = {
+        message: "success",
+        status: 1,
+        result: data,
+      };
+      res.json(response);
+    } catch (err) {
+      await conn.rollback();
+      next(err);
+    } finally {
+      await conn.release();
+    }
+  },
 
   adminGetAllPost: async (req, res, next) => {
     let conn,
@@ -309,7 +405,7 @@ const Product = {
       await conn.release();
     }
   },
-  updateProduct: async (req, res, next) => {
+  sellerUpdateProduct: async (req, res, next) => {
     let conn;
     let {
       idProduct,
@@ -317,88 +413,143 @@ const Product = {
       description,
       categoryId,
       price,
-      address,
+      uid,
       quantity,
-      lat,
-      lng,
-      image,
+      location = {},
+      image = "https://cdn.mobilecity.vn/mobilecity-vn/images/2021/07/iphone-11-pro-max-mat-truoc-sau.jpg",
       images = [],
       tag = [],
     } = req.body;
+    let { address, lat, lng } = location;
     let updatedAt = new Date();
     try {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
+      //validate request
+      const validate = {};
+
+      if (images.length > 8) validate.images = "Max length images is 8";
+      if (!name.trim()) validate.name = "name is require field ";
+      if (!description) validate.description = "description is require field ";
+      if (!categoryId) validate.categoryId = "categoryId is require field ";
+      if (!price || price < 0) validate.price = "price is invalid ";
+      if (!location || !lat || !lng || !address.trim())
+        validate.location = "location is invalid ";
+      if (!image) validate.image = "spotlight image is invalid ";
+      if (tag && tag.length > 5) validate.tag = "Tag limit 5";
+
+      if (Object.keys(validate).length !== 0) {
+        res.json({ status: false, error: validate });
+        return;
+      }
       let sql, result;
       let tagStr = tag.toString();
+      //validate user 
+      sqlUser = `Select * from user where uid = ?`;
+      let hasUser = await conn.query(sqlUser, [uid]);
+      await conn.commit();
+      if (hasUser[0].length < 1) {
+        res.json({ status: false, error: "User Not Existed" });
+        return;
+      }
+      //validate
+      let sqlProduct = `select product.*,user.username,user.address AS userAddress,user.email,user.phone,user.avatar, category.name as categoryName, category.icon as categoryIcon 
+      from user, product, category 
+      where user.uid=product.uid and product.categoryId=category.id and product.deletedAt is null and product.id = ?`;
 
-      //validate data
-      if (images.length > 10) {
-        res.json({ error: "More than 10 images" });
-      } else {
-        sqlUser = `Select * from user where uid = ?`;
-        let hasUser = await conn.query(sqlUser, [uid]);
-        await conn.commit();
-        if (hasUser[0].length < 1) {
-          res.json({ error: "User Not Existed" });
-        } else {
-          //Update product
-          sql = `update product
+      result = await conn.query(sqlProduct, [idProduct]);
+      let products = result[0];
+      if (products.length < 1 || products[0].uid != uid) {
+        const response = {
+          status: false,
+          message: "Product is not existed",
+        };
+        res.json(response);
+        return;
+      }
+      let product = products[0];
+      //Update product
+      sql = `update product
                  set name = ?, description = ?, categoryId = ?, price =?, address = ?, quantity = ?, lat = ?, lng = ?, image = ?, updatedAt = ?, tag = ?, status = "pending"
                  where id = ?`;
-          result = await conn.query(sql, [
-            name,
-            description,
-            Number(categoryId),
-            Number(price),
-            address,
-            Number(quantity),
-            lat,
-            lng,
-            image,
-            updatedAt,
-            tagStr,
-            idProduct,
-          ]);
+      result = await conn.query(sql, [
+        name,
+        description,
+        Number(categoryId),
+        Number(price),
+        address,
+        Number(quantity),
+        lat,
+        lng,
+        image,
+        updatedAt,
+        tagStr,
+        idProduct,
+      ]);
 
-          //update image
+      //update image
+      await conn.query(
+        "update image set deletedAt = ?, updatedAt = ? where productId = ?",
+        [updatedAt, updatedAt, idProduct]
+      );
+      
+      let imgQuery = await conn.query(
+        "Select * from image where productId = ?",
+        [idProduct]
+      );
+      await conn.commit();
+      let imgs = imgQuery[0];
+      for (let img of images) {
+        if (imgs.filter(x => x.url == img).length > 0) {
           await conn.query(
-            "update image set deletedAt = ?, updatedAt = ? where productId = ?",
-            [updatedAt, updatedAt, idProduct]
+            'update image set deletedAt = Null, status = "pending" where url = ? AND productId = ?',
+            [img, idProduct]
           );
-          for (let img of images) {
-            let imgQuery = await conn.query(
-              "Select * from image where url = ? AND productId = ?",
-              [img, idProduct]
-            );
-            await conn.commit();
-            if (imgQuery[0].length > 0) {
-              await conn.query(
-                'update image set deletedAt = Null, status = "pending" where url = ? AND productId = ?',
-                [img, idProduct]
-              );
-              await conn.commit();
-            } else {
-              sql = `INSERT INTO image ( productId, url, status, createdAt, updatedAt) 
+          await conn.commit();
+        } else {
+          sql = `INSERT INTO image ( productId, url, status, createdAt, updatedAt) 
 
                      VALUES (?, ?, 'pending', ?, ?)`;
-              let resultImg = await conn.query(sql, [
-                idProduct,
-                img,
-                updatedAt,
-                updatedAt,
-              ]);
-              await conn.commit();
-            }
-          }
-
-          const response = {
-            status: 1,
-            result: "success",
-          };
-          res.json(response);
+          let resultImg = await conn.query(sql, [
+            idProduct,
+            img,
+            updatedAt,
+            updatedAt,
+          ]);
+          await conn.commit();
         }
       }
+
+      //create notify to admin
+      //get user
+      let user = hasUser[0][0];
+      let adminQuery = await conn.query(
+        `select * from admin where deletedAt is null `
+      );
+      await conn.commit();
+      let admins = adminQuery[0];
+      let adminNotis = [];
+      let h = updatedAt.getHours();
+      let m = updatedAt.getMinutes();
+      let s = updatedAt.getSeconds();
+      let date = updatedAt.getDate();
+      let month = updatedAt.getMonth() + 1;
+      let year = updatedAt.getFullYear();
+      let title = `Người dùng ${user.username} đã sửa thông tin sản phẩm ${product.code}`;
+      let content = `Người dùng ${user.username} đã sửa thông tin sản phẩm ${product.code} vào lúc ${h}:${m}:${s} ngày ${date}/${month}/${year}. Sản phẩm này đang chờ được duyệt`;
+      for (let admin of admins) {
+        adminNotis.push([admin.id, title, content]);
+      }
+      let sqlNoti = `INSERT INTO admin_notify ( admin_id, title, content) VALUES ?`;
+      await conn.query(sqlNoti, [adminNotis]);
+      await conn.commit();
+
+      const response = {
+        status: true,
+        message: "success",
+      };
+      res.json(response);
+
     } catch (err) {
       await conn.rollback();
       next(err);
@@ -444,7 +595,24 @@ const Product = {
     try {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
-      let sql, result, count, total;
+      let sql, result;
+      //validate
+      let sqlProduct = `select product.*,user.username,user.address AS userAddress,user.email,user.phone,user.avatar, category.name as categoryName, category.icon as categoryIcon 
+      from user, product, category 
+      where user.uid=product.uid and product.categoryId=category.id and product.deletedAt is null and product.id = ?`;
+
+      result = await conn.query(sqlProduct, [idProduct]);
+      let products = result[0];
+      if (products.length < 1) {
+        const response = {
+          status: false,
+          message: "Product is not existed",
+        };
+        res.json(response);
+        return;
+      }
+      let product = products[0];
+      //Active product
       sql = `update product 
              set status = "active",admin_id= ?, updatedAt = ?
              where product.id = ?`;
@@ -457,9 +625,38 @@ const Product = {
       );
       await conn.commit();
 
+      //create user notify
+      let h = updatedAt.getHours();
+      let m = updatedAt.getMinutes();
+      let s = updatedAt.getSeconds();
+      let date = updatedAt.getDate();
+      let month = updatedAt.getMonth() + 1;
+      let year = updatedAt.getFullYear();
+      let title = `Sản phẩm ${product.code} của bạn đã được kích hoạt đăng lên`;
+      let content = `Sản phẩm ${product.code} của bạn đã được kích hoạt đăng lên vào lúc ${h}:${m}:${s} ngày ${date}/${month}/${year}.`;
+      let sqlNoti = `INSERT INTO notify ( uid, title, content) VALUES (?, ?, ?)`;
+      await conn.query(sqlNoti, [product.uid, title, content]);
+      await conn.commit();
+
+      //create admin_notify
+      let adminQuery = await conn.query(
+        `select * from admin where deletedAt is null `
+      );
+      await conn.commit();
+      let admins = adminQuery[0];
+      let adminNotis = [];
+      let titleAdmin = `Sản phẩm ${product.code}`;
+      let contentAdmin = `Sản phẩm ${product.code} đã được kích hoạt đăng lên vào lúc ${h}:${m}:${s} ngày ${date}/${month}/${year}.`;
+      for (let admin of admins) {
+        adminNotis.push([admin.id, titleAdmin, contentAdmin]);
+      }
+      let sqlAdminNoti = `INSERT INTO admin_notify ( admin_id, title, content) VALUES ?`;
+      await conn.query(sqlAdminNoti, [adminNotis]);
+      await conn.commit();
+
       const response = {
-        result: "success",
-        status: 1,
+        status: true,
+        message: "success",
       };
       res.json(response);
     } catch (err) {
