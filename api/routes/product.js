@@ -49,6 +49,40 @@ module.exports = (app) => {
   app.get("/admin/product", authAdmin, product.adminGetAllPost);
   /**
    * @swagger
+   * /admin/product/get:
+   *   get:
+   *     description: admin get product detail
+   *     parameters:
+   *      - name: idProduct
+   *        in: query
+   *      - name: idAdmin
+   *        in: query
+   * 
+   *     responses:
+   *       200:
+   *         description: Success
+   *
+   */
+  app.post("/admin/product/get", product.adminGetProductDetail);
+  /**
+   * @swagger
+   * /seller/product/get:
+   *   get:
+   *     description: seller get product detail
+   *     parameters:
+   *      - name: idProduct
+   *        in: query
+   *      - name: uid
+   *        in: query
+   * 
+   *     responses:
+   *       200:
+   *         description: Success
+   *
+   */
+   app.post("/seller/product/get", product.sellerGetProductDetail);
+  /**
+   * @swagger
    * /admin/product/filter:
    *   get:
    *     description: filter all product for admin
@@ -158,7 +192,7 @@ module.exports = (app) => {
    *         description: Success
    *
    */
-  app.post("/product/update", product.updateProduct);
+  app.post("/product/update", product.sellerUpdateProduct);
 
   /**
    * @swagger

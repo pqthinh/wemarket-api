@@ -385,6 +385,28 @@ const User = {
           await conn.commit();
           response = { status: 1, message: "success" };
         }
+
+        //create admin notify
+        let adminQuery = await conn.query(
+          `select * from admin where deletedAt is null `
+        );
+        await conn.commit();
+        let admins = adminQuery[0];
+        let adminNotis = [];
+        let h = createdAt.getHours();
+        let m = createdAt.getMinutes();
+        let s = createdAt.getSeconds();
+        let date = createdAt.getDate();
+        let month = createdAt.getMonth() + 1;
+        let year = createdAt.getFullYear();
+        let title = `Tài khoản người dùng ${username} mới được tạo`;
+        let content = `Tài khoản người dùng ${username} mới được tạo vào lúc ${h}:${m}:${s} ngày ${date}/${month}/${year}. Tài khoản đang chờ được kích hoạt`;
+        for (let admin of admins) {
+          adminNotis.push([admin.id, title, content]);
+        }
+        let sqlNoti = `INSERT INTO admin_notify ( admin_id, title, content) VALUES ?`;
+        await conn.query(sqlNoti, [adminNotis]);
+        await conn.commit();
         res.json({ response });
       }
     } catch (err) {
@@ -481,10 +503,30 @@ const User = {
              set status = "active",updatedAt = ?
              where user.id = ?`;
       result = await conn.query(sql, [updatedAt, idUser]);
-
+      //create notify
+      let adminQuery = await conn.query(
+        `select * from admin where deletedAt is null `
+      );
+      await conn.commit();
+      let admins = adminQuery[0];
+      let adminNotis = [];
+      let h = updatedAt.getHours();
+      let m = updatedAt.getMinutes();
+      let s = updatedAt.getSeconds();
+      let date = updatedAt.getDate();
+      let month = updatedAt.getMonth() + 1;
+      let year = updatedAt.getFullYear();
+      let title = `Tài khoản người dùng ${user.username} đã được kích hoạt`;
+      let content = `Tài khoản người dùng ${user.username} đã được kích hoạt vào lúc ${h}:${m}:${s} ngày ${date}/${month}/${year}`;
+      for (let admin of admins) {
+        adminNotis.push([admin.id, title, content]);
+      }
+      let sqlNoti = `INSERT INTO admin_notify ( admin_id, title, content) VALUES ?`;
+      await conn.query(sqlNoti, [adminNotis]);
+      await conn.commit();
       const response = {
-        result: "success",
-        status: 1,
+        status: true,
+        message: "success",
       };
       res.json(response);
     } catch (err) {
