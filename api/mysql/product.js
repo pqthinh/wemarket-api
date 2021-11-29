@@ -1111,7 +1111,7 @@ const Product = {
       await conn.commit();
       let comments = result[0];
       let skip = Number(offset > 0 ? offset : 0) * Number(limit);
-      let commentResult = products.slice(skip, skip + Number(limit));
+      let commentResult = comments.slice(skip, skip + Number(limit));
 
       const response = {
         total: comments.length,
