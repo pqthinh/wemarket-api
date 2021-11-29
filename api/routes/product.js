@@ -295,4 +295,40 @@ module.exports = (app) => {
    *
    */
   app.post("/bookmark/delete", product.deleteBookmark);
+    /**
+   * @swagger
+   * /admin/comment/list:
+   *   get:
+   *     description: admin get product detail
+   *     parameters:
+   *      - name: limit
+   *        in: query
+   *      - name: offset
+   *        in: query
+   *      - name: idAdmin
+   *        in: query
+   * 
+   *     responses:
+   *       200:
+   *         description: Success
+   *
+   */
+  app.get("/admin/comment/list", product.adminGetAllComment);
+  /**
+   * @swagger
+   * /admin/comment/list:
+   *   get:
+   *     description: admin get product detail
+   *     parameters:
+   *      - name: idProduct
+   *        in: query
+   *      - name: idAdmin
+   *        in: query
+   * 
+   *     responses:
+   *       200:
+   *         description: Success
+   *
+   */
+  app.get("/admin/comment/get", product.adminGetCommentDetail);
 };
