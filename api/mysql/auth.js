@@ -138,7 +138,7 @@ const User = {
     }
   },
   getUserDetail: async (req, res, next) => {
-    const { uid } = req.body;
+    const { uid } = req.params;
     let conn;
     try {
       conn = await dbs.getConnection();
@@ -147,7 +147,7 @@ const User = {
       sql = `select * from user where uid = ? `;
       result = await conn.query(sql, [uid]);
       await conn.commit();
-      res.json(result[0]);
+      res.json({ status: 1, data: result[0][0] });
     } catch (err) {
       await conn.rollback();
       next(err);

@@ -5,7 +5,7 @@ module.exports = (app) => {
   const user = require("../mysql/auth");
   /**
    * @swagger
-   * /user/auth:
+   * /user/info/:uid:
    *   get:
    *     description: get info user
    *     parameters:
@@ -15,7 +15,7 @@ module.exports = (app) => {
    *       200:
    *         description: Success
    */
-  app.get("/user/info", user.getUserDetail);
+  app.get("/user/info/:uid", user.getUserDetail);
 
   /**
    * @swagger
