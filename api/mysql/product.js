@@ -1083,6 +1083,100 @@ const Product = {
       await conn.release();
     }
   },
+  adminGetAllComment: async (req, res, next) => {
+    let conn,
+      { limit = 10, offset = 0, idAdmin } = req.query;
+    try {
+      //validate
+      if(!idAdmin) {
+        const response = {
+          status: false,
+          message : "idAdmin is required",
+        };
+  
+        res.json(response);
+        return;
+      }
+      conn = await dbs.getConnection();
+      await conn.beginTransaction();
+      let sql, result;
+      sql = `select c.*, 
+      op.id AS order_id, op.quantity,
+      ub.username as buyerUsername, ub.avatar buyerAvatar, ub.address buyerAddress, ub.email buyerEmail, 
+      p.name, p.image, p.price, p.uid sellerUid, 
+      us.username sellerUsername, us.avatar sellerAvatar, us.address sellerAddress, us.email sellerEmail
+      from comment c, order_product op, user ub, user us, product p
+      where c.orderId = op.id and ub.uid = op.uid and p.id = op.product_id and us.uid = p.uid and op.status = 'accepted'`;
+      result = await conn.query(sql);
+      await conn.commit();
+      let comments = result[0];
+      let skip = Number(offset > 0 ? offset : 0) * Number(limit);
+      let commentResult = comments.slice(skip, skip + Number(limit));
+
+      const response = {
+        total: comments.length,
+        page: Number(offset) + 1,
+        result: commentResult,
+      };
+
+      res.json(response);
+    } catch (err) {
+      await conn.rollback();
+      next(err);
+    } finally {
+      await conn.release();
+    }
+  },
+  adminGetCommentDetail: async (req, res, next) => {
+    let conn,
+      { idComment, idAdmin} = req.query;
+    try {
+      //validate
+      if(!idComment || !idAdmin) {
+        const response = {
+          status: false,
+          message : "idComment or idAdmin is required",
+        };
+  
+        res.json(response);
+        return;
+      }
+      conn = await dbs.getConnection();
+      await conn.beginTransaction();
+      let sql, result;
+      sql = `select c.*, 
+      op.id AS order_id, op.quantity,
+      ub.username as buyerUsername, ub.avatar buyerAvatar, ub.address buyerAddress, ub.email buyerEmail, 
+      p.name, p.image, p.price, p.uid sellerUid, 
+      us.username sellerUsername, us.avatar sellerAvatar, us.address sellerAddress, us.email sellerEmail
+      from comment c, order_product op, user ub, user us, product p
+      where c.orderId = op.id and ub.uid = op.uid and p.id = op.product_id and us.uid = p.uid and op.status = 'accepted' and c.id = ?`;
+      result = await conn.query(sql,[idComment]);
+      await conn.commit();
+      let comment = result[0];
+      if(comment.length < 1) {
+        const response = {
+          status: false,
+          message : "Comment is not existed",
+        };
+  
+        res.json(response);
+        return;
+      }
+
+      const response = {
+        status: true,
+        result : comment[0],
+      };
+
+      res.json(response);
+    } catch (err) {
+      await conn.rollback();
+      next(err);
+    } finally {
+      await conn.release();
+    }
+  },
 };
 
 module.exports = Product;
