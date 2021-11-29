@@ -347,10 +347,10 @@ const User = {
       username,
       address,
       email,
-      phone,
-      gender = null,
-      birthday,
-      avatar = null,
+      phone = "",
+      gender = "",
+      birthday = "",
+      avatar = "",
     } = req.body;
     try {
       let createdAt = new Date();
@@ -359,17 +359,17 @@ const User = {
 
       let result, response;
 
-      if (!email || !phone) {
-        response = { error: true, message: "Email or phone is empty" };
+      if (!email) {
+        response = { status: false, message: "Email or phone is empty" };
         res.json({ response });
       } else {
-        let sqlCheckExist = "select * from user where email=? or phone=?";
-        result = await conn.query(sqlCheckExist, [email, phone]);
+        let sqlCheckExist = "select * from user where email=? ";
+        result = await conn.query(sqlCheckExist, [email]);
         await conn.commit();
 
         response = { status: false, message: "User existed false" };
         if (result[0].length == 0) {
-          let sql = `insert into user set uid = ?, username = ?, address = ?, email = ?, phone = ?, gender =?, birthday = ?, avatar = ?, status = "pendding", createdAt = ?, updatedAt = ? `;
+          let sql = `insert into user set uid = ?, username = ?, address = ?, email = ?, phone = ?, gender =?, birthday = ?, avatar = ?, status = "pending", createdAt = ? `;
           await conn.query(sql, [
             uid,
             username,
@@ -379,7 +379,6 @@ const User = {
             gender,
             birthday,
             avatar,
-            createdAt,
             createdAt,
           ]);
           await conn.commit();
