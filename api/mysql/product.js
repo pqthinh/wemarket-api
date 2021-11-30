@@ -142,7 +142,7 @@ const Product = {
       let sql, result;
       sql = `select product.*,user.username,user.address AS userAddress,user.email,user.phone,user.avatar, category.name as categoryName, category.icon as categoryIcon 
       from user, product, category 
-      where user.uid=product.uid and product.categoryId=category.id and product.deletedAt is null and product.id = ?`
+      where user.uid=product.uid and product.categoryId=category.id and product.deletedAt is null and product.id = ?`;
 
       result = await conn.query(sql, [idProduct]);
 
@@ -192,7 +192,7 @@ const Product = {
       let sql, result;
       sql = `select product.*,user.username,user.address AS userAddress,user.email,user.phone,user.avatar, category.name as categoryName, category.icon as categoryIcon 
       from user, product, category 
-      where user.uid=product.uid and product.categoryId=category.id and product.deletedAt is null and product.id = ?`
+      where user.uid=product.uid and product.categoryId=category.id and product.deletedAt is null and product.id = ?`;
 
       result = await conn.query(sql, [idProduct]);
 
@@ -444,7 +444,7 @@ const Product = {
       }
       let sql, result;
       let tagStr = tag.toString();
-      //validate user 
+      //validate user
       sqlUser = `Select * from user where uid = ?`;
       let hasUser = await conn.query(sqlUser, [uid]);
       await conn.commit();
@@ -492,7 +492,7 @@ const Product = {
         "update image set deletedAt = ?, updatedAt = ? where productId = ?",
         [updatedAt, updatedAt, idProduct]
       );
-      
+
       let imgQuery = await conn.query(
         "Select * from image where productId = ?",
         [idProduct]
@@ -500,7 +500,7 @@ const Product = {
       await conn.commit();
       let imgs = imgQuery[0];
       for (let img of images) {
-        if (imgs.filter(x => x.url == img).length > 0) {
+        if (imgs.filter((x) => x.url == img).length > 0) {
           await conn.query(
             'update image set deletedAt = Null, status = "pending" where url = ? AND productId = ?',
             [img, idProduct]
@@ -549,7 +549,6 @@ const Product = {
         message: "success",
       };
       res.json(response);
-
     } catch (err) {
       await conn.rollback();
       next(err);
@@ -1085,18 +1084,8 @@ const Product = {
   },
   adminGetAllComment: async (req, res, next) => {
     let conn,
-      { limit = 10, offset = 0, idAdmin } = req.query;
+      { limit = 10, offset = 0 } = req.query;
     try {
-      //validate
-      if(!idAdmin) {
-        const response = {
-          status: false,
-          message : "idAdmin is required",
-        };
-  
-        res.json(response);
-        return;
-      }
       conn = await dbs.getConnection();
       await conn.beginTransaction();
       let sql, result;
@@ -1129,15 +1118,15 @@ const Product = {
   },
   adminGetCommentDetail: async (req, res, next) => {
     let conn,
-      { idComment, idAdmin} = req.query;
+      { idComment, idAdmin } = req.query;
     try {
       //validate
-      if(!idComment || !idAdmin) {
+      if (!idComment || !idAdmin) {
         const response = {
           status: false,
-          message : "idComment or idAdmin is required",
+          message: "idComment or idAdmin is required",
         };
-  
+
         res.json(response);
         return;
       }
@@ -1151,22 +1140,22 @@ const Product = {
       us.username sellerUsername, us.avatar sellerAvatar, us.address sellerAddress, us.email sellerEmail
       from comment c, order_product op, user ub, user us, product p
       where c.orderId = op.id and ub.uid = op.uid and p.id = op.product_id and us.uid = p.uid and op.status = 'accepted' and c.id = ?`;
-      result = await conn.query(sql,[idComment]);
+      result = await conn.query(sql, [idComment]);
       await conn.commit();
       let comment = result[0];
-      if(comment.length < 1) {
+      if (comment.length < 1) {
         const response = {
           status: false,
-          message : "Comment is not existed",
+          message: "Comment is not existed",
         };
-  
+
         res.json(response);
         return;
       }
 
       const response = {
         status: true,
-        result : comment[0],
+        result: comment[0],
       };
 
       res.json(response);
