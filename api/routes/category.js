@@ -17,23 +17,23 @@ module.exports = (app) => {
    *         description: Success
    *
    */
-  app.post("/common/category", category.getListCategory);
+  app.get("/common/category", category.getListCategory);
 
   /**
    * @swagger
    * /common/category/get:
-   *   post:
+   *   get:
    *     description: get category by id
    *     parameters:
    *       - name : idCategory
-   *         in : body
+   *         in : params
    *         type : integer
    *
    *     responses:
    *       200:
    *         description: Success
    */
-  app.post("/common/category/get", category.getCategory);
+  app.get("/common/category/get/:idCategory", category.getCategory);
 
   /**
    * @swagger
@@ -90,33 +90,33 @@ module.exports = (app) => {
    *     description: get all subcategory
    *     parameters:
    *      - name: limit
-   *        in: body
+   *        in: query
    *      - name: offset
-   *        in: body
+   *        in: query
    *      - name: idCategory
-   *        in: body
+   *        in: query
    *     responses:
    *       200:
    *         description: Success
    *
    */
-   app.post("/common/subcategory", category.getListSubCategory);
+   app.get("/common/subcategory", category.getListSubCategory);
 
    /**
     * @swagger
     * /common/subcategory/get:
     *   post:
-    *     description: get category by id
+    *     description: get subcategory by id
     *     parameters:
-    *       - name : idCategory
-    *         in : body
+    *       - name : idSubCategory
+    *         in : params
     *         type : integer
     *
     *     responses:
     *       200:
     *         description: Success
     */
-   app.post("/common/subcategory/get", category.getSubCategory);
+   app.get("/common/subcategory/get/:idSubCategory", category.getSubCategory);
  
    /**
     * @swagger

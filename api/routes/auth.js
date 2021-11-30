@@ -94,4 +94,17 @@ module.exports = (app) => {
    *
    */
   app.get("/user/list", user.listAllUserForAdmin);
+  /**
+   * @swagger
+   * /admin/user/ban:
+   *   post:
+   *     description: ban user
+   *     parameters:
+   *       - name: uid
+   *         in : body
+   *     responses:
+   *       200:
+   *         description: Success
+   */
+  app.post("/admin/user/ban", user.adminBanUser);
 };
