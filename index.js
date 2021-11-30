@@ -21,6 +21,7 @@ const options = {
     "./api/routes/admin.js",
     "./api/routes/notify.js",
     "./api/routes/order.js",
+    "./api/routes/banner.js",
   ],
 };
 const specs = swaggerJsdoc(options);

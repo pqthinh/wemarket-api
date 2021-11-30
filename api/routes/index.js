@@ -11,5 +11,6 @@ require("./auth")(router);
 require("./admin")(router);
 require("./notify")(router);
 require("./order")(router);
+require("./banner")(router);
 
 module.exports = router;
