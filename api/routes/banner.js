@@ -3,6 +3,21 @@ module.exports = (app) => {
   const banner = require("../mysql/banner");
   /**
    * @swagger
+   * /common/banner/list:
+   *   get:
+   *     description: common/banner/list
+   *     parameters:
+   *      - name: type
+   *        in: query
+   *     responses:
+   *       200:
+   *         description: Success
+   *
+   */
+  app.get("/common/banner/list", banner.getListBannerActive);
+
+  /**
+   * @swagger
    * /admin/banner/list:
    *   get:
    *     description: get all banner active product

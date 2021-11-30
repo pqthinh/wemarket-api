@@ -1,18 +1,32 @@
 const dbs = require("./dbs");
 
 const Banner = {
+  getListBannerActive: async (req, res, next) => {
+    let conn,
+      { type } = req.query;
+    try {
+      conn = await dbs.getConnection();
+      await conn.beginTransaction();
+      let sql, result;
+      sql = `select * from banner where status="active"`;
+      result = await conn.query(sql);
+      await conn.commit();
+      const response = {
+        status: true,
+        data: result[0],
+      };
+      res.json(response);
+    } catch (err) {
+      await conn.rollback();
+      next(err);
+    } finally {
+      await conn.release();
+    }
+  },
   getListBanner: async (req, res, next) => {
     let conn,
-      { limit = 10, offset = 0, idAdmin } = req.query;
+      { limit = 10, offset = 0 } = req.query;
     try {
-      if(!idAdmin) {
-        const response = {
-          status: false,
-          message:"idAdmin is required",
-        };
-        res.json(response);
-        return;
-      }
       conn = await dbs.getConnection();
       await conn.beginTransaction();
       let sql, result;
@@ -38,12 +52,12 @@ const Banner = {
   },
   getBannerDetail: async (req, res, next) => {
     let conn;
-    let { idBanner, idAdmin } = req.query;
+    let { idBanner } = req.query;
     try {
-      if(!idBanner || !idAdmin) {
+      if (!idBanner) {
         const response = {
           status: false,
-          message:"idBanner or idAdmin is required",
+          message: "idBanner is required",
         };
         res.json(response);
         return;
@@ -75,10 +89,10 @@ const Banner = {
     let { url } = req.body;
     try {
       //validate
-      if(!url) {
+      if (!url) {
         const response = {
           status: false,
-          message:"url is required",
+          message: "url is required",
         };
         res.json(response);
         return;
@@ -94,7 +108,7 @@ const Banner = {
 
       const response = {
         status: true,
-        message:"success",
+        message: "success",
       };
       res.json(response);
     } catch (err) {
