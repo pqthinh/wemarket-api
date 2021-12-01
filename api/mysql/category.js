@@ -3,7 +3,7 @@ const dbs = require("./dbs");
 const Category = {
   getListCategory: async (req, res, next) => {
     let conn,
-      { limit = 20, offset = 0 } = req.body;
+      { limit = 20, offset = 0 } = req.query;
     try {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
@@ -32,7 +32,7 @@ const Category = {
   },
   getCategory: async (req, res, next) => {
     let conn;
-    let { idCategory } = req.body;
+    let { idCategory } = req.params;
     try {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
@@ -163,7 +163,7 @@ const Category = {
   },
   getListSubCategory: async (req, res, next) => {
     let conn,
-      { limit = 10, offset = 0, idCategory } = req.body;
+      { limit = 10, offset = 0, idCategory } = req.query;
     try {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
@@ -196,7 +196,7 @@ const Category = {
   },
   getSubCategory: async (req, res, next) => {
     let conn;
-    let { idSubCategory } = req.body;
+    let { idSubCategory } = req.params;
     try {
       conn = await dbs.getConnection();
       await conn.beginTransaction();

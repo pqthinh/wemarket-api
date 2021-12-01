@@ -705,6 +705,82 @@ const User = {
       await conn.release();
     }
   },
+  adminBanUser: async (req, res, next) => {
+    let { uid } = req.body;
+    let updatedAt = new Date();
+    try {
+      //validate
+      if (!uid) {
+        const response = {
+          status: false,
+          message: "uid is required",
+        };
+        res.json(response);
+      }
+
+      conn = await dbs.getConnection();
+      await conn.beginTransaction();
+      let sql, result;
+      //validate User 
+      let sqlUser = `select * from user where uid = ?`;
+      let userRes = await conn.query(sqlUser, [uid]);
+      await conn.commit();
+      if (userRes[0].length < 1) {
+        const response = {
+          status: false,
+          message: "User is not existed",
+        };
+        res.json(response);
+        return;
+      }
+      let user = userRes[0][0];
+      sql = `update user
+             set status = "ban",updatedAt = ?
+             where user.uid = ?`;
+      result = await conn.query(sql, [updatedAt, uid]);
+      await conn.commit();
+
+      //update product
+      let sqlProduct = `update product 
+      set status = "ban", updatedAt = ?
+      where product.uid = ?`;
+      let resultProduct = await conn.query(sqlProduct, [updatedAt, uid]);
+      await conn.commit();
+
+
+      //create notify
+      let adminQuery = await conn.query(
+        `select * from admin where deletedAt is null `
+      );
+      await conn.commit();
+      let admins = adminQuery[0];
+      let adminNotis = [];
+      let h = updatedAt.getHours();
+      let m = updatedAt.getMinutes();
+      let s = updatedAt.getSeconds();
+      let date = updatedAt.getDate();
+      let month = updatedAt.getMonth() + 1;
+      let year = updatedAt.getFullYear();
+      let title = `Tài khoản người dùng ${user.username} đã bị cấm`;
+      let content = `Tài khoản người dùng ${user.username} đã bị cấm vào lúc ${h}:${m}:${s} ngày ${date}/${month}/${year}`;
+      for (let admin of admins) {
+        adminNotis.push([admin.id, title, content]);
+      }
+      let sqlNoti = `INSERT INTO admin_notify ( admin_id, title, content) VALUES ?`;
+      await conn.query(sqlNoti, [adminNotis]);
+      await conn.commit();
+      const response = {
+        status: true,
+        message: "success",
+      };
+      res.json(response);
+    } catch (err) {
+      await conn.rollback();
+      next(err);
+    } finally {
+      await conn.release();
+    }
+  },
 };
 
 module.exports = User;
