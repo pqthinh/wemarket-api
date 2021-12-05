@@ -147,6 +147,8 @@ module.exports = (app) => {
    *        - name: image
    *        - name: tag
    *        - name: images
+   *        - name: categoryName
+   *        - name: username
    *     responses:
    *       200:
    *         description: Success
@@ -187,6 +189,8 @@ module.exports = (app) => {
    *        - name: image
    *        - name: tag
    *        - name: images
+   *        - name: categoryName
+   *        - name: username
    *     responses:
    *       200:
    *         description: Success
