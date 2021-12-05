@@ -1,4 +1,5 @@
 const dbs = require("./dbs");
+const client = require("./elastic");
 
 const Product = {
   getAllPostActive: async (req, res, next) => {
@@ -36,9 +37,9 @@ const Product = {
           let a =
             Math.sin(dLat / 2) * Math.sin(dLat / 2) +
             Math.sin(dLon / 2) *
-              Math.sin(dLon / 2) *
-              Math.cos(lat1) *
-              Math.cos(lat2);
+            Math.sin(dLon / 2) *
+            Math.cos(lat1) *
+            Math.cos(lat2);
           let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
           x.distance = Math.round(R * c * 100) / 100;
         });
@@ -105,9 +106,9 @@ const Product = {
         let a =
           Math.sin(dLat / 2) * Math.sin(dLat / 2) +
           Math.sin(dLon / 2) *
-            Math.sin(dLon / 2) *
-            Math.cos(lat1) *
-            Math.cos(lat2);
+          Math.sin(dLon / 2) *
+          Math.cos(lat1) *
+          Math.cos(lat2);
         let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         product.distance = Math.round(R * c * 100) / 100;
       }
@@ -563,6 +564,17 @@ const Product = {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
       let sql, result;
+      //validate idProduct
+      if (!idProduct) {
+        const response = {
+          status: false,
+          result: "idProduct is required",
+        };
+        res.json(response);
+        return;
+      }
+
+      //delete
       sql = `update product 
              set deletedAt = ?, updatedAt = ?
              where product.id = ?`;
@@ -575,6 +587,13 @@ const Product = {
         [deletedAt, deletedAt, idProduct]
       );
       await conn.commit();
+
+      //delete in elasticsearch
+      await client.delete({
+        index: "products",
+        type: "product",
+        id: idProduct
+      });
 
       const response = {
         result: "success",
@@ -652,6 +671,20 @@ const Product = {
       let sqlAdminNoti = `INSERT INTO admin_notify ( admin_id, title, content) VALUES ?`;
       await conn.query(sqlAdminNoti, [adminNotis]);
       await conn.commit();
+
+      //create document in elasticsearch
+      await client.index(
+        {
+          index: 'products',
+          id: idProduct,
+          type: 'product',
+          body: {
+            name: product.name,
+            description: product.description,
+            address: product.address,
+          },
+        }
+      );
 
       const response = {
         status: true,
@@ -733,11 +766,37 @@ const Product = {
       let product = result[0];
       //search
       if (search) {
-        product = product.filter(
-          (x) =>
-            x.description.toLowerCase().includes(search.toLowerCase()) ||
-            x.name.toLowerCase().includes(search.toLowerCase())
-        );
+        let bodyQuery = {
+          size: 10000,
+          from: 0,
+          query: {
+            bool: {
+              should: [
+                {
+                  match: {
+                    name: search.trim(),
+                  }
+                },
+                {
+                  match: {
+                    description: search.trim(),
+                  }
+                }
+              ]
+            }
+          },
+        };
+        let responseQuery = await client.search({
+          index: "products",
+          body: bodyQuery,
+          type: 'product'
+        });
+        productElastic = responseQuery.hits.hits;
+        var num = []
+        for (let p of productElastic) {
+          num.push(p._source.id)
+        }
+        product = product.filter(p => num.includes(p.id));
       }
       //search by category
       if (categoryId.length > 0) {
@@ -778,9 +837,9 @@ const Product = {
           let a =
             Math.sin(dLat / 2) * Math.sin(dLat / 2) +
             Math.sin(dLon / 2) *
-              Math.sin(dLon / 2) *
-              Math.cos(lat1) *
-              Math.cos(lat2);
+            Math.sin(dLon / 2) *
+            Math.cos(lat1) *
+            Math.cos(lat2);
           let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
           x.distance = Math.round(R * c * 100) / 100;
         });

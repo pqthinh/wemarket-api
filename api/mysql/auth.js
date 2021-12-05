@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const saltRounds = 10;
 const nodemailer = require("nodemailer");
 const smtpTransport = require("nodemailer-smtp-transport");
+const client = require("./elastic");
 
 const User = {
   getAdmin: async (req, res, next) => {
@@ -740,6 +741,23 @@ const User = {
       result = await conn.query(sql, [updatedAt, uid]);
       await conn.commit();
 
+      //delete in elasticsearch
+      let sqlListProduct = `select product.*
+      where status ="active" and deletedAt is null AND uid = ? `;
+      result = await conn.query(sqlListProduct,[uid]);
+      await conn.commit();
+      let product = result[0];
+      if(product.length > 0){
+        for(let p of product) {
+          await client.delete({
+            index: "products",
+            type: "product",
+            id: p.id
+          });
+        }
+
+      }
+
       //update product
       let sqlProduct = `update product 
       set status = "ban", updatedAt = ?
@@ -769,6 +787,7 @@ const User = {
       let sqlNoti = `INSERT INTO admin_notify ( admin_id, title, content) VALUES ?`;
       await conn.query(sqlNoti, [adminNotis]);
       await conn.commit();
+
       const response = {
         status: true,
         message: "success",
