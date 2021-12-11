@@ -13,6 +13,7 @@ const Product = {
       where product.status ="active" and user.uid=product.uid and product.categoryId=category.id and product.deletedAt is null`;
 
       result = await conn.query(sql);
+      await conn.commit();
       let product = result[0];
 
       let topViewProduct = product
@@ -736,20 +737,21 @@ const Product = {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
       let sql, result;
-      sql = `select product.*, user.username, user.address, user.email, user.phone, user.avatar from user, product where product.uid=? AND product.deletedAt is null limit ? offset ?`;
+      sql = `select product.*,user.username,user.address AS userAddress,user.email,user.phone,user.avatar, category.name as categoryName, category.icon as categoryIcon 
+      from user, product, category 
+      where product.deletedAt is null and user.uid=product.uid and product.categoryId=category.id and product.uid = ?`;
       result = await conn.query(sql, [
-        uid,
-        Number(limit),
-        Number(offset > 0 ? offset : 0) * Number(limit),
+        uid
       ]);
-      sqlCount = `select count(*) as total from product`;
-      const total = await conn.query(sqlCount);
       await conn.commit();
+      let products = result[0];
+      let skip = Number(offset > 0 ? offset : 0) * Number(limit);
+      let productResult = products.slice(skip, skip + Number(limit));
 
       const response = {
-        total: total[0][0].total,
+        total: products.length,
         page: Number(offset) + 1,
-        result: result[0],
+        result: productResult,
       };
       res.json(response);
     } catch (err) {
