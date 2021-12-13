@@ -37,9 +37,9 @@ const Product = {
           let a =
             Math.sin(dLat / 2) * Math.sin(dLat / 2) +
             Math.sin(dLon / 2) *
-            Math.sin(dLon / 2) *
-            Math.cos(lat1) *
-            Math.cos(lat2);
+              Math.sin(dLon / 2) *
+              Math.cos(lat1) *
+              Math.cos(lat2);
           let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
           x.distance = Math.round(R * c * 100) / 100;
         });
@@ -106,9 +106,9 @@ const Product = {
         let a =
           Math.sin(dLat / 2) * Math.sin(dLat / 2) +
           Math.sin(dLon / 2) *
-          Math.sin(dLon / 2) *
-          Math.cos(lat1) *
-          Math.cos(lat2);
+            Math.sin(dLon / 2) *
+            Math.cos(lat1) *
+            Math.cos(lat2);
         let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         product.distance = Math.round(R * c * 100) / 100;
       }
@@ -592,7 +592,7 @@ const Product = {
       await client.delete({
         index: "products",
         type: "product",
-        id: idProduct
+        id: idProduct,
       });
 
       const response = {
@@ -673,18 +673,16 @@ const Product = {
       await conn.commit();
 
       //create document in elasticsearch
-      await client.index(
-        {
-          index: 'products',
-          id: idProduct,
-          type: 'product',
-          body: {
-            name: product.name,
-            description: product.description,
-            address: product.address,
-          },
-        }
-      );
+      await client.index({
+        index: "products",
+        id: idProduct,
+        type: "product",
+        body: {
+          name: product.name,
+          description: product.description,
+          address: product.address,
+        },
+      });
 
       const response = {
         status: true,
@@ -700,7 +698,7 @@ const Product = {
   },
   getAllPostOfUser: async (req, res, next) => {
     let conn,
-      { limit = 10, offset = 0, uid } = req.query;
+      { limit = 50, offset = 0, uid } = req.body;
     try {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
@@ -775,28 +773,28 @@ const Product = {
                 {
                   match: {
                     name: search.trim(),
-                  }
+                  },
                 },
                 {
                   match: {
                     description: search.trim(),
-                  }
-                }
-              ]
-            }
+                  },
+                },
+              ],
+            },
           },
         };
         let responseQuery = await client.search({
           index: "products",
           body: bodyQuery,
-          type: 'product'
+          type: "product",
         });
         productElastic = responseQuery.hits.hits;
-        var num = []
+        var num = [];
         for (let p of productElastic) {
-          num.push(p._source.id)
+          num.push(p._source.id);
         }
-        product = product.filter(p => num.includes(p.id));
+        product = product.filter((p) => num.includes(p.id));
       }
       //search by category
       if (categoryId.length > 0) {
@@ -837,9 +835,9 @@ const Product = {
           let a =
             Math.sin(dLat / 2) * Math.sin(dLat / 2) +
             Math.sin(dLon / 2) *
-            Math.sin(dLon / 2) *
-            Math.cos(lat1) *
-            Math.cos(lat2);
+              Math.sin(dLon / 2) *
+              Math.cos(lat1) *
+              Math.cos(lat2);
           let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
           x.distance = Math.round(R * c * 100) / 100;
         });
