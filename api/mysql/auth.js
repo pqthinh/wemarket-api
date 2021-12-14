@@ -741,23 +741,6 @@ const User = {
       result = await conn.query(sql, [updatedAt, uid]);
       await conn.commit();
 
-      //delete in elasticsearch
-      let sqlListProduct = `select product.*
-      where status ="active" and deletedAt is null AND uid = ? `;
-      result = await conn.query(sqlListProduct,[uid]);
-      await conn.commit();
-      let product = result[0];
-      if(product.length > 0){
-        for(let p of product) {
-          await client.delete({
-            index: "products",
-            type: "product",
-            id: p.id
-          });
-        }
-
-      }
-
       //update product
       let sqlProduct = `update product 
       set status = "ban", updatedAt = ?

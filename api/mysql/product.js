@@ -13,6 +13,7 @@ const Product = {
       where product.status ="active" and user.uid=product.uid and product.categoryId=category.id and product.deletedAt is null`;
 
       result = await conn.query(sql);
+      await conn.commit();
       let product = result[0];
 
       let topViewProduct = product
@@ -299,6 +300,8 @@ const Product = {
       image = "https://cdn.mobilecity.vn/mobilecity-vn/images/2021/07/iphone-11-pro-max-mat-truoc-sau.jpg",
       images = [],
       tag = [],
+      categoryName,
+      username,
     } = req.body;
     let createdAt = new Date();
     let { address, lat, lng } = location;
@@ -312,7 +315,9 @@ const Product = {
       if (!description) validate.description = "description is require field ";
       if (!categoryId) validate.categoryId = "categoryId is require field ";
       if (!price || price < 0) validate.price = "price is invalid ";
-      if (!price || price < 0) validate.price = "price is invalid ";
+      if (!categoryName) validate.categoryName = "categoryName is required";
+      if (!username) validate.username = "username is required";
+      if (!uid) validate.uid = "uid is required";
       if (!location || !lat || !lng || !address.trim())
         validate.location = "location is invalid ";
       if (!image) validate.image = "spotlight image is invalid ";
@@ -394,6 +399,22 @@ const Product = {
       await conn.query(sqlNoti, [adminNotis]);
       await conn.commit();
 
+      //create document in elasticsearch
+      await client.index({
+        index: "products",
+        id: idProductAfterCreate,
+        type: "product",
+        body: {
+          name: name,
+          id: idProductAfterCreate,
+          description: description,
+          address: address,
+          category: categoryName,
+          tag: tagStr,
+          username: username,
+        },
+      });
+
       const response = {
         status: 1,
         message: `Create success product id = ${idProductAfterCreate}`,
@@ -420,6 +441,8 @@ const Product = {
       image = "https://cdn.mobilecity.vn/mobilecity-vn/images/2021/07/iphone-11-pro-max-mat-truoc-sau.jpg",
       images = [],
       tag = [],
+      categoryName,
+      username,
     } = req.body;
     let { address, lat, lng } = location;
     let updatedAt = new Date();
@@ -434,6 +457,9 @@ const Product = {
       if (!description) validate.description = "description is require field ";
       if (!categoryId) validate.categoryId = "categoryId is require field ";
       if (!price || price < 0) validate.price = "price is invalid ";
+      if (!categoryName) validate.categoryName = "categoryName is required";
+      if (!username) validate.username = "username is required";
+      if (!uid) validate.uid = "uid is required";
       if (!location || !lat || !lng || !address.trim())
         validate.location = "location is invalid ";
       if (!image) validate.image = "spotlight image is invalid ";
@@ -544,6 +570,24 @@ const Product = {
       let sqlNoti = `INSERT INTO admin_notify ( admin_id, title, content) VALUES ?`;
       await conn.query(sqlNoti, [adminNotis]);
       await conn.commit();
+      //update document in elasticsearch
+      client.update({
+        index: "products",
+        type: "product",
+        id: idProduct,
+        body: {
+          // put the partial document under the `doc` key
+          doc: {
+            name: name,
+            id: idProduct,
+            description: description,
+            address: address,
+            category: categoryName,
+            tag: tagStr,
+            username: username,
+          },
+        },
+      });
 
       const response = {
         status: true,
@@ -672,18 +716,6 @@ const Product = {
       await conn.query(sqlAdminNoti, [adminNotis]);
       await conn.commit();
 
-      //create document in elasticsearch
-      await client.index({
-        index: "products",
-        id: idProduct,
-        type: "product",
-        body: {
-          name: product.name,
-          description: product.description,
-          address: product.address,
-        },
-      });
-
       const response = {
         status: true,
         message: "success",
@@ -703,20 +735,19 @@ const Product = {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
       let sql, result;
-      sql = `select product.*, user.username, user.address, user.email, user.phone, user.avatar from user, product where product.uid=? AND product.deletedAt is null limit ? offset ?`;
-      result = await conn.query(sql, [
-        uid,
-        Number(limit),
-        Number(offset > 0 ? offset : 0) * Number(limit),
-      ]);
-      sqlCount = `select count(*) as total from product`;
-      const total = await conn.query(sqlCount);
+      sql = `select product.*,user.username,user.address AS userAddress,user.email,user.phone,user.avatar, category.name as categoryName, category.icon as categoryIcon 
+      from user, product, category 
+      where product.deletedAt is null and user.uid=product.uid and product.categoryId=category.id and product.uid = ?`;
+      result = await conn.query(sql, [uid]);
       await conn.commit();
+      let products = result[0];
+      let skip = Number(offset > 0 ? offset : 0) * Number(limit);
+      let productResult = products.slice(skip, skip + Number(limit));
 
       const response = {
-        total: total[0][0].total,
+        total: products.length,
         page: Number(offset) + 1,
-        result: result[0],
+        result: productResult,
       };
       res.json(response);
     } catch (err) {
@@ -778,6 +809,26 @@ const Product = {
                 {
                   match: {
                     description: search.trim(),
+                  },
+                },
+                {
+                  match: {
+                    address: search.trim(),
+                  },
+                },
+                {
+                  match: {
+                    username: search.trim(),
+                  },
+                },
+                {
+                  match: {
+                    category: search.trim(),
+                  },
+                },
+                {
+                  match: {
+                    tag: search.trim(),
                   },
                 },
               ],
@@ -951,14 +1002,57 @@ const Product = {
 
       //search
       if (search) {
-        product = product.filter(
-          (x) =>
-            x.description.toLowerCase().includes(search.toLowerCase()) ||
-            x.name.toLowerCase().includes(search.toLowerCase()) ||
-            x.categoryName.toLowerCase().includes(search.toLowerCase()) ||
-            x.email.toLowerCase().includes(search.toLowerCase()) ||
-            x.username.toLowerCase().includes(search.toLowerCase())
-        );
+        let bodyQuery = {
+          size: 10000,
+          from: 0,
+          query: {
+            bool: {
+              should: [
+                {
+                  match: {
+                    name: search.trim(),
+                  },
+                },
+                {
+                  match: {
+                    description: search.trim(),
+                  },
+                },
+                {
+                  match: {
+                    address: search.trim(),
+                  },
+                },
+                {
+                  match: {
+                    username: search.trim(),
+                  },
+                },
+                {
+                  match: {
+                    category: search.trim(),
+                  },
+                },
+                {
+                  match: {
+                    tag: search.trim(),
+                  },
+                },
+              ],
+            },
+          },
+        };
+        let responseQuery = await client.search({
+          index: "products",
+          body: bodyQuery,
+          type: "product",
+        });
+        productElastic = responseQuery.hits.hits;
+        var num = [];
+        for (let p of productElastic) {
+          num.push(p._source.id);
+        }
+        product = product.filter((p) => num.includes(p.id));
       }
       //search by category
       if (categoryId.length > 0) {
