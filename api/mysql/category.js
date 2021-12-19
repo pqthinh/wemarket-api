@@ -65,11 +65,11 @@ const Category = {
       let sql, result;
 
       //validate data
-      let hasCategory = await conn.query(
-        `Select * from category`
-      );
+      let hasCategory = await conn.query(`select * from category`);
       await conn.commit();
-      let listCategory = hasCategory[0].filter(x => x.name.toLowerCase() == name.toLowerCase());
+      let listCategory = hasCategory[0].filter(
+        (x) => x.name.toLowerCase() == name.toLowerCase()
+      );
       if (listCategory.length > 0) {
         res.json({ error: "Category Existed" });
       } else {
@@ -80,7 +80,7 @@ const Category = {
 
         const response = {
           status: 1,
-          message:"success",
+          message: "success",
         };
         res.json(response);
       }
@@ -163,28 +163,29 @@ const Category = {
   },
   getListSubCategory: async (req, res, next) => {
     let conn,
-      { limit = 10, offset = 0, idCategory } = req.query;
+      { idCategory } = req.query;
     try {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
       let sql, result;
-      if(!idCategory) {
-        res.json({ status: false, error: "idCategory is required" });
-        return;
-      }
-      sql = `select * from subcategory`;
+      sql = `SELECT subcategory.id, subcategory.categoryId AS categoryId, subcategory.name AS subcategoryName, subcategory.image AS subcategoryImage,subcategory.icon AS subcategoryIcon, category.* FROM subcategory LEFT JOIN category ON subcategory.categoryId = category.id `;
       result = await conn.query(sql);
       let subcategory = result[0];
-      if(idCategory) {
-        subcategory = subcategory.filter(x => x.categoryId == idCategory);
+      if (idCategory) {
+        subcategory = subcategory.filter((x) => x.categoryId == idCategory);
       }
-      let skip = Number(offset > 0 ? offset : 0) * Number(limit);
-      let subcategoryResult = subcategory.slice(skip, skip + Number(limit));
+
+      let temp = subcategory.reduce((r, a) => {
+        r.children = [...(r[a.categoryId] || []), a];
+        r = { ...a, ...r };
+        console.log(r, "result");
+        debugger;
+        return r;
+      }, {});
 
       const response = {
         total: subcategory.length,
-        page: Number(offset) + 1,
-        result: subcategoryResult,
+        listCategory: temp,
       };
       res.json(response);
     } catch (err) {
@@ -222,37 +223,49 @@ const Category = {
   },
   createSubCategory: async (req, res, next) => {
     let conn;
-    let { idCategory, name, description = null, icon = null, image = null } = req.body;
+    let {
+      idCategory,
+      name,
+      description = null,
+      icon = null,
+      image = null,
+    } = req.body;
     try {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
       let sql, result;
-      if(!idCategory) {
+      if (!idCategory) {
         res.json({ status: false, error: "idCategory is required" });
         return;
       }
-      if(!name) {
+      if (!name) {
         res.json({ status: false, error: "name is required" });
         return;
       }
 
       //validate data
-      let hasCategory = await conn.query(
-        `Select * from subcategory`
-      );
+      let hasCategory = await conn.query(`Select * from subcategory`);
       await conn.commit();
-      let list = hasCategory[0].filter(x => x.name.toLowerCase() == name.toLowerCase());
+      let list = hasCategory[0].filter(
+        (x) => x.name.toLowerCase() == name.toLowerCase()
+      );
       if (list.length > 0) {
         res.json({ error: "SubCategory Existed" });
       } else {
         //create category
         sql = `INSERT INTO subcategory (name, description, icon, image, categoryId) VALUES (?, ?, ?, ?, ?)`;
-        result = await conn.query(sql, [name, description, icon, image, idCategory]);
+        result = await conn.query(sql, [
+          name,
+          description,
+          icon,
+          image,
+          idCategory,
+        ]);
         await conn.commit();
 
         const response = {
           status: 1,
-          result:"success",
+          result: "success",
         };
         res.json(response);
       }
@@ -271,18 +284,18 @@ const Category = {
       description = null,
       icon = null,
       image = null,
-      idCategory
+      idCategory,
     } = req.body;
     try {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
       let sql, result;
-      
-      if(!idCategory) {
+
+      if (!idCategory) {
         res.json({ status: false, error: "idCategory is required" });
         return;
       }
-      if(!name) {
+      if (!name) {
         res.json({ status: false, error: "name is required" });
         return;
       }
@@ -303,7 +316,7 @@ const Category = {
           icon,
           image,
           idCategory,
-          idSubCategory
+          idSubCategory,
         ]);
         await conn.commit();
 
@@ -313,7 +326,6 @@ const Category = {
         };
         res.json(response);
       }
-    
     } catch (err) {
       await conn.rollback();
       next(err);
@@ -329,9 +341,10 @@ const Category = {
       let sql, result;
 
       //validate data
-      let idValidate = await conn.query(`Select * from subcategory where id = ?`, [
-        idSubCategory,
-      ]);
+      let idValidate = await conn.query(
+        `Select * from subcategory where id = ?`,
+        [idSubCategory]
+      );
       await conn.commit();
       if (idValidate[0].length < 1) {
         res.json({ error: "SubCategory Not Existed" });

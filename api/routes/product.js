@@ -57,7 +57,7 @@ module.exports = (app) => {
    *        in: query
    *      - name: idAdmin
    *        in: query
-   * 
+   *
    *     responses:
    *       200:
    *         description: Success
@@ -74,13 +74,13 @@ module.exports = (app) => {
    *        in: query
    *      - name: uid
    *        in: query
-   * 
+   *
    *     responses:
    *       200:
    *         description: Success
    *
    */
-   app.post("/seller/product/get", product.sellerGetProductDetail);
+  app.post("/seller/product/get", product.sellerGetProductDetail);
   /**
    * @swagger
    * /admin/product/filter:
@@ -267,6 +267,22 @@ module.exports = (app) => {
    *
    */
   app.post("/common/product/filter", product.filterActiveProduct);
+
+  /**
+   * @swagger
+   * /bookmark/:uid:
+   *   post:
+   *     description: get list bookmark for user
+   *     parameters:
+   *      - name: uid
+   *        in: query
+   *     responses:
+   *       200:
+   *         description: Success
+   *
+   */
+  app.get("/bookmark/:uid", product.getListBookmark);
+
   /**
    * @swagger
    * /bookmark/create:
@@ -299,7 +315,7 @@ module.exports = (app) => {
    *
    */
   app.post("/bookmark/delete", product.deleteBookmark);
-    /**
+  /**
    * @swagger
    * /admin/comment/list:
    *   get:
@@ -311,7 +327,7 @@ module.exports = (app) => {
    *        in: query
    *      - name: idAdmin
    *        in: query
-   * 
+   *
    *     responses:
    *       200:
    *         description: Success
@@ -328,7 +344,7 @@ module.exports = (app) => {
    *        in: query
    *      - name: idAdmin
    *        in: query
-   * 
+   *
    *     responses:
    *       200:
    *         description: Success

@@ -788,7 +788,7 @@ const Product = {
         result,
         error = [];
       sql = `select product.*,user.uid, user.username, user.address AS userAddress, user.email, user.phone, user.avatar, category.name AS categoryName, category.icon as iconCategory
-      from category, product, user 
+      from category, product, user
       where product.status ="active" and product.deletedAt is null AND user.uid = product.uid AND category.id=product.categoryId`;
       result = await conn.query(sql);
       await conn.commit();
@@ -1119,6 +1119,43 @@ const Product = {
         message: "Get product failed",
         result: {},
       });
+      await conn.rollback();
+      next(err);
+    } finally {
+      await conn.release();
+    }
+  },
+  getListBookmark: async (req, res, next) => {
+    let conn;
+    let { uid, idCategory } = req.params;
+    try {
+      conn = await dbs.getConnection();
+      if (!uid) {
+        const response = {
+          status: false,
+          message: "Bad request",
+        };
+        res.json(response);
+        return;
+      }
+      await conn.beginTransaction();
+      let r = await conn.query(
+        `select * from bookmark, product, user  where bookmark.uid = ? and product.id= bookmark.productId and bookmark.uid=user.uid`,
+        [uid]
+      );
+      await conn.commit;
+      let result = r[0];
+      if (idCategory) {
+        result = result.filter((res) => res.categoryId == idCategory);
+      }
+
+      const response = {
+        status: true,
+        message: "Get list bookmark success",
+        data: result,
+      };
+      res.json(response);
+    } catch (err) {
       await conn.rollback();
       next(err);
     } finally {
