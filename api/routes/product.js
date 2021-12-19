@@ -271,7 +271,7 @@ module.exports = (app) => {
   /**
    * @swagger
    * /bookmark/:uid:
-   *   post:
+   *   get:
    *     description: get list bookmark for user
    *     parameters:
    *      - name: uid

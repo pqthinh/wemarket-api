@@ -20,19 +20,19 @@ module.exports = (app) => {
 
   /**
    * @swagger
-   * /user/get-notify:
+   * /user/read-notify:
    *   post:
-   *     description: get notify
+   *     description: read a notify
    *     parameters:
    *       - name: uid
    *         in: body
-   *       - name: id
+   *       - name: idNotify
    *         in: body
    *     responses:
    *       200:
    *         description: Success
    */
-  app.post("/user/get-notify", notify.userGetNotify);
+  app.post("/user/read-notify", notify.userReadNotify);
   /**
    * @swagger
    * /admin/get-notify:

@@ -30,9 +30,8 @@ const Notify = {
   },
 
   // api - update
-  userGetNotify: async (req, res, next) => {
-    let uid = req.body.uid;
-    let idNotify = req.body.id;
+  userReadNotify: async (req, res, next) => {
+    let { uid, idNotify } = req.body;
     updateAt = new Date();
     try {
       conn = await dbs.getConnection();
@@ -54,14 +53,10 @@ const Notify = {
              where notify.uid = ? and notify.id = ? `;
       resultNotify = await conn.query(sqlNotify, [updateAt, uid, idNotify]);
       await conn.commit();
-      sql = ` select * from notify where notify.uid = ? and notify.id =?`;
-      result = await conn.query(sql, [uid, idNotify]);
-      await conn.commit();
 
       const response = {
         result: "success",
         status: 1,
-        data: result[0],
       };
       res.json(response);
     } catch (err) {
