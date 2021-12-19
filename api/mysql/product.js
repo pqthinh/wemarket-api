@@ -71,7 +71,7 @@ const Product = {
   },
   getProductDetail: async (req, res, next) => {
     let conn;
-    let { idProduct } = req.params;
+    let { idProduct, uid } = req.params;
     let { lat, lng } = req.query;
 
     try {
@@ -93,6 +93,11 @@ const Product = {
       await conn.query(
         `update product set view= view+1 where id=? AND status='active'`,
         [idProduct]
+      );
+
+      await conn.query(
+        `INSERT INTO product_seen_recent (uid, productId) VALUES (?, ?) `,
+        [uid, idProduct]
       );
 
       await conn.commit();

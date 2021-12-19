@@ -5,7 +5,7 @@ module.exports = (app) => {
 
   /**
    * @swagger
-   * /common/notify:
+   * /common/notify/:uid:
    *   get:
    *     description: get notify for user
    *     parameters:

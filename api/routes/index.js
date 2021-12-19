@@ -12,5 +12,6 @@ require("./admin")(router);
 require("./notify")(router);
 require("./order")(router);
 require("./banner")(router);
+require("./history")(router);
 
 module.exports = router;

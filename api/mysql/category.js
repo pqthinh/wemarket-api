@@ -168,7 +168,7 @@ const Category = {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
       let sql, result;
-      sql = `SELECT subcategory.id, subcategory.categoryId AS categoryId, subcategory.name AS subcategoryName, subcategory.image AS subcategoryImage,subcategory.icon AS subcategoryIcon, category.* FROM subcategory LEFT JOIN category ON subcategory.categoryId = category.id `;
+      sql = `SELECT subcategory.id, subcategory.categoryId AS categoryId, subcategory.name AS subcategoryName, subcategory.image AS subcategoryImage,subcategory.icon AS subcategoryIcon, category.* FROM subcategory LEFT JOIN category ON subcategory.categoryId = category.id`;
       result = await conn.query(sql);
       let subcategory = result[0];
       if (idCategory) {
@@ -177,9 +177,6 @@ const Category = {
 
       let temp = subcategory.reduce((r, a) => {
         r.children = [...(r[a.categoryId] || []), a];
-        r = { ...a, ...r };
-        console.log(r, "result");
-        debugger;
         return r;
       }, {});
 
