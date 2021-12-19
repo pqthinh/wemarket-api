@@ -65,37 +65,60 @@ const Notify = {
   },
 
   adminGetNotify: async (req, res, next) => {
-    let idAdmin = req.body.admin_id;
-    let idNotify = req.body.id;
+    let { idAdmin } = req.params;
     updateAt = new Date();
     try {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
-      let sqlNotify, resultNotify;
       let sql, result;
 
       //validate
-      const validate = {};
-      if (!idAdmin) validate.uid = "idAmin is require field";
-      if (!idNotify) validate.idNotify = "idNotify is require field";
-      if (Object.keys(validate).length !== 0) {
-        res.json({ status: false, error: validate });
-        return;
-      }
+      if (!idAdmin)
+        res.json({ status: false, error: "Bad request | check iAdmin" });
 
-      sqlNotify = `update admin_notify
-             set isRead = 1 , updatedAt = ?
-             where admin_id = ? and id = ? `;
-      resultNotify = await conn.query(sqlNotify, [updateAt, idAdmin, idNotify]);
+      sql = ` select * from admin_notify where admin_notify.admin_id =?`;
+      result = await conn.query(sql, [idAdmin]);
       await conn.commit();
-      sql = ` select * from admin_notify where admin_notify.admin_id = ? and admin_notify.id =?`;
-      result = await conn.query(sql, [idAdmin, idNotify]);
+
+      const response = {
+        message: "success",
+        status: 1,
+        data: result[0],
+      };
+      res.json(response);
+    } catch (err) {
+      await conn.rollback();
+      next(err);
+    } finally {
+      await conn.release();
+    }
+  },
+  adminReadNotify: async (req, res, next) => {
+    let { idAdmin, idNotify, type } = req.body;
+    try {
+      conn = await dbs.getConnection();
+      await conn.beginTransaction();
+
+      if (!idAdmin || !idNotify)
+        res.json({
+          status: false,
+          error: "Bad request | check id notify and id admin",
+        });
+
+      let readNotify = `update admin_notify
+             set isRead = 1 , updatedAt = ?
+             where admin_notify.admin_id = ? and admin_notify.id = ? `;
+      let updateAllNotify = `update admin_notify
+      set isRead = 1 , updatedAt = ?
+      where admin_notify.admin_id = ? `;
+
+      if (type) await conn.query(updateAllNotify, [new Date(), idAdmin]);
+      else await conn.query(readNotify, [new Date(), idAdmin, idNotify]);
       await conn.commit();
 
       const response = {
         result: "success",
-        status: 1,
-        data: result[0],
+        status: true,
       };
       res.json(response);
     } catch (err) {

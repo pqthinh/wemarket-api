@@ -36,18 +36,34 @@ module.exports = (app) => {
   /**
    * @swagger
    * /admin/get-notify:
-   *   post:
+   *   get:
    *     description: admin get notify
    *     parameters:
    *       - name: admin_id
+   *         in: params
+   *     responses:
+   *       200:
+   *         description: Success
+   */
+  app.get("/admin/get-notify/:idAdmin", notify.adminGetNotify);
+
+  /**
+   * @swagger
+   * /admin/read-notify:
+   *   post:
+   *     description: admin get notify
+   *     parameters:
+   *       - name: idAdmin
    *         in: body
-   *       - name: id
+   *       - name: idNotify
+   *         in: body
+   *       - name: type
    *         in: body
    *     responses:
    *       200:
    *         description: Success
    */
-  app.post("/admin/get-notify", notify.adminGetNotify);
+  app.post("/admin/read-notify", notify.adminReadNotify);
 
   /**
    * @swagger

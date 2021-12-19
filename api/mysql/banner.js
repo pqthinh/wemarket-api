@@ -50,14 +50,14 @@ const Banner = {
       await conn.release();
     }
   },
-  getBannerDetail: async (req, res, next) => {
+  updateBanner: async (req, res, next) => {
     let conn;
-    let { idBanner } = req.query;
+    let { idBanner, url, type, description } = req.body;
     try {
       if (!idBanner) {
         const response = {
           status: false,
-          message: "idBanner is required",
+          message: "Bad request",
         };
         res.json(response);
         return;
@@ -65,21 +65,22 @@ const Banner = {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
       let sql, result;
-      sql = `select * from banner where id = ?`;
-      result = await conn.query(sql, [idBanner]);
+      sql = `update banner set url=?, type=?, description=? where id = ?`;
+      result = await conn.query(sql, [url, type, description, idBanner]);
       await conn.commit();
-      if (result[0].length < 1) {
-        res.json({ error: "Banner Not Existed" });
-      } else {
-        const response = {
-          status: true,
-          result: result[0][0],
-        };
-        res.json(response);
-      }
+
+      const response = {
+        status: true,
+        result: `Update banner ${idBanner} success`,
+      };
+      res.json(response);
     } catch (err) {
       await conn.rollback();
       next(err);
+      res.json({
+        status: false,
+        message: "Can't update banner",
+      });
     } finally {
       await conn.release();
     }
