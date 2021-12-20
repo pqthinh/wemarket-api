@@ -270,18 +270,20 @@ module.exports = (app) => {
 
   /**
    * @swagger
-   * /bookmark/:uid:
+   * /bookmark/:uid/:idCategory:
    *   get:
    *     description: get list bookmark for user
    *     parameters:
    *      - name: uid
+   *        in: query
+   *      - name: idCategory
    *        in: query
    *     responses:
    *       200:
    *         description: Success
    *
    */
-  app.get("/bookmark/:uid", product.getListBookmark);
+  app.get("/bookmark/:uid/:idCategory", product.getListBookmark);
 
   /**
    * @swagger
@@ -334,6 +336,24 @@ module.exports = (app) => {
    *
    */
   app.get("/admin/comment/list", product.adminGetAllComment);
+
+  /**
+   * @swagger
+   * /admin/comment-status:
+   *   post:
+   *     description: change status comment by admin
+   *     parameters:
+   *       - name : idComment
+   *         in : body
+   *       - name : status
+   *         in : body
+   *     responses:
+   *       200:
+   *         description: Success
+   *
+   */
+  app.post("/admin/comment-status", product.changeStatusComment);
+
   /**
    * @swagger
    * /admin/comment/list:

@@ -1435,6 +1435,41 @@ const Product = {
       await conn.release();
     }
   },
+  changeStatusComment: async (req, res, next) => {
+    let conn;
+    let { idComment, status } = req.body;
+    try {
+      if (!idComment) {
+        const response = {
+          status: false,
+          message: "Bad request",
+        };
+        res.json(response);
+        return;
+      }
+      conn = await dbs.getConnection();
+      await conn.beginTransaction();
+      let sql;
+      sql = `update comment set status=?, updatedAt=? where id = ?`;
+      await conn.query(sql, [status, new Date(), idComment]);
+      await conn.commit();
+
+      const response = {
+        status: true,
+        result: `Update Comment ${idComment} success`,
+      };
+      res.json(response);
+    } catch (err) {
+      await conn.rollback();
+      next(err);
+      res.json({
+        status: false,
+        message: "Can't update comment",
+      });
+    } finally {
+      await conn.release();
+    }
+  },
 };
 
 module.exports = Product;

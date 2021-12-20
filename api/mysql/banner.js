@@ -134,7 +134,7 @@ const Banner = {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
       let sql;
-      sql = `update banner set status=?, updateAt=? where id = ?`;
+      sql = `update banner set status=?, updatedAt=? where id = ?`;
       await conn.query(sql, [status, new Date(), idBanner]);
       await conn.commit();
 
