@@ -369,4 +369,21 @@ module.exports = (app) => {
    *
    */
   app.post("/admin/active-post", product.adminActivePost);
+  /**
+   * @swagger
+   * /admin/ban-post:
+   *   post:
+   *     description: admin ban post
+   *     parameters:
+   *      - name: idProduct
+   *        in: query
+   *      - name: idAdmin
+   *        in: query
+   *
+   *     responses:
+   *       200:
+   *         description: Success
+   *
+   */
+  app.post("/admin/ban-post", product.adminBanPost);
 };

@@ -395,7 +395,7 @@ const Product = {
       let date = createdAt.getDate();
       let month = createdAt.getMonth() + 1;
       let year = createdAt.getFullYear();
-      let title = `Người dùng ${user.username} đã tạo sản phẩm ${code}`;
+      let title = `Sản phẩm mới`;
       let content = `Người dùng ${user.username} đã tạo sản phẩm ${code} vào lúc ${h}:${m}:${s} ngày ${date}/${month}/${year}. Sản phẩm này đang chờ được duyệt`;
       for (let admin of admins) {
         adminNotis.push([admin.id, title, content]);
@@ -714,6 +714,83 @@ const Product = {
       let adminNotis = [];
       let titleAdmin = `Sản phẩm ${product.code}`;
       let contentAdmin = `Sản phẩm ${product.code} đã được kích hoạt đăng lên vào lúc ${h}:${m}:${s} ngày ${date}/${month}/${year}.`;
+      for (let admin of admins) {
+        adminNotis.push([admin.id, titleAdmin, contentAdmin]);
+      }
+      let sqlAdminNoti = `INSERT INTO admin_notify ( admin_id, title, content) VALUES ?`;
+      await conn.query(sqlAdminNoti, [adminNotis]);
+      await conn.commit();
+
+      const response = {
+        status: true,
+        message: "success",
+      };
+      res.json(response);
+    } catch (err) {
+      await conn.rollback();
+      next(err);
+    } finally {
+      await conn.release();
+    }
+  },
+  adminBanPost: async (req, res, next) => {
+    let { idProduct, idAdmin } = req.body;
+    let updatedAt = new Date();
+    try {
+      conn = await dbs.getConnection();
+      await conn.beginTransaction();
+      let sql, result;
+      //validate
+      let sqlProduct = `select product.*,user.username,user.address AS userAddress,user.email,user.phone,user.avatar, category.name as categoryName, category.icon as categoryIcon 
+      from user, product, category 
+      where user.uid=product.uid and product.categoryId=category.id and product.deletedAt is null and product.id = ?`;
+
+      result = await conn.query(sqlProduct, [idProduct]);
+      let products = result[0];
+      if (products.length < 1) {
+        const response = {
+          status: false,
+          message: "Product is not existed",
+        };
+        res.json(response);
+        return;
+      }
+      let product = products[0];
+      //Active product
+      sql = `update product 
+             set status = "ban",admin_id= ?, updatedAt = ?
+             where product.id = ?`;
+      result = await conn.query(sql, [idAdmin, updatedAt, idProduct]);
+
+      //Active image
+      await conn.query(
+        'update image set status = "ban", updatedAt = ? where productId = ?',
+        [updatedAt, idProduct]
+      );
+      await conn.commit();
+
+      //create user notify
+      let h = updatedAt.getHours();
+      let m = updatedAt.getMinutes();
+      let s = updatedAt.getSeconds();
+      let date = updatedAt.getDate();
+      let month = updatedAt.getMonth() + 1;
+      let year = updatedAt.getFullYear();
+      let title = `Sản phẩm ${product.code} của bạn bị cấm đăng`;
+      let content = `Sản phẩm ${product.code} của bạn đã bị cấm đăng lên vào lúc ${h}:${m}:${s} ngày ${date}/${month}/${year}.`;
+      let sqlNoti = `INSERT INTO notify ( uid, title, content) VALUES (?, ?, ?)`;
+      await conn.query(sqlNoti, [product.uid, title, content]);
+      await conn.commit();
+
+      //create admin_notify
+      let adminQuery = await conn.query(
+        `select * from admin where deletedAt is null `
+      );
+      await conn.commit();
+      let admins = adminQuery[0];
+      let adminNotis = [];
+      let titleAdmin = `Sản phẩm ${product.code}`;
+      let contentAdmin = `Sản phẩm ${product.code} đã bị cấm đăng lên vào lúc ${h}:${m}:${s} ngày ${date}/${month}/${year}.`;
       for (let admin of admins) {
         adminNotis.push([admin.id, titleAdmin, contentAdmin]);
       }
