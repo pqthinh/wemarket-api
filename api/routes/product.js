@@ -351,4 +351,22 @@ module.exports = (app) => {
    *
    */
   app.get("/admin/comment/get", product.adminGetCommentDetail);
+
+  /**
+   * @swagger
+   * /admin/active-post:
+   *   post:
+   *     description: admin active post
+   *     parameters:
+   *      - name: idProduct
+   *        in: query
+   *      - name: idAdmin
+   *        in: query
+   *
+   *     responses:
+   *       200:
+   *         description: Success
+   *
+   */
+  app.post("/admin/active-post", product.adminActivePost);
 };
