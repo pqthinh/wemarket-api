@@ -231,7 +231,6 @@ const Product = {
       await conn.release();
     }
   },
-
   adminGetAllPost: async (req, res, next) => {
     let conn,
       { limit = 10, offset = 0 } = req.query;

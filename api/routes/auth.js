@@ -49,7 +49,7 @@ module.exports = (app) => {
    *       200:
    *         description: Success
    */
-  app.get("/admin/active-user", authAdmin, user.adminActiveUser);
+  app.post("/admin/active-user", authAdmin, user.adminActiveUser);
 
   /**
    * @swagger
