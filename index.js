@@ -22,6 +22,7 @@ const options = {
     "./api/routes/notify.js",
     "./api/routes/order.js",
     "./api/routes/banner.js",
+    "./api/routes/history.js",
   ],
 };
 const specs = swaggerJsdoc(options);

@@ -1,59 +1,71 @@
 module.exports = (app) => {
-    const { authUser, authAdmin } = require("../helpers/middleware");
-    /* notify */
-    const notify = require("../mysql/notify");
+  const { authUser, authAdmin } = require("../helpers/middleware");
+  /* notify */
+  const notify = require("../mysql/notify");
 
-
-    /**
-     * @swagger
-     * /common/notify:
-     *   get:
-     *     description: get notify
-     *     parameters:
-     *      - name: limit
-     *        in: query
-     *      - name: offset
-     *        in: query
-     *     responses:
-     *       200:
-     *         description: Success
-     *
-     */
-    app.get("/common/notify" ,notify.getListNotify );
-
-    /**
+  /**
    * @swagger
-   * /user/get-notify:
+   * /common/notify/:uid:
+   *   get:
+   *     description: get notify for user
+   *     parameters:
+   *      - name: uid
+   *        in: params
+   *     responses:
+   *       200:
+   *         description: Success
+   *
+   */
+  app.get("/common/notify/:uid", notify.getListNotify);
+
+  /**
+   * @swagger
+   * /user/read-notify:
    *   post:
-   *     description: get notify
+   *     description: read a notify
    *     parameters:
    *       - name: uid
    *         in: body
-   *       - name: id
+   *       - name: idNotify
    *         in: body
    *     responses:
    *       200:
    *         description: Success
    */
-    app.post("/user/get-notify", notify.userGetNotify);
-/**
+  app.post("/user/read-notify", notify.userReadNotify);
+  /**
    * @swagger
    * /admin/get-notify:
-   *   post:
+   *   get:
    *     description: admin get notify
    *     parameters:
    *       - name: admin_id
+   *         in: params
+   *     responses:
+   *       200:
+   *         description: Success
+   */
+  app.get("/admin/get-notify/:idAdmin", notify.adminGetNotify);
+
+  /**
+   * @swagger
+   * /admin/read-notify:
+   *   post:
+   *     description: admin get notify
+   *     parameters:
+   *       - name: idAdmin
    *         in: body
-   *       - name: id
+   *       - name: idNotify
+   *         in: body
+   *       - name: type
    *         in: body
    *     responses:
    *       200:
    *         description: Success
    */
- app.post("/admin/get-notify", notify.adminGetNotify);
-   
-    
-    /**
+  app.post("/admin/read-notify", notify.adminReadNotify);
+
+  /**
    * @swagger
    * /user/delete-notify:
    *   post:
@@ -83,7 +95,5 @@ module.exports = (app) => {
    *       200:
    *         description: Success
    */
-   app.post("/admin/delete-notify", notify.adminDeleteNotify);
-
+  app.post("/admin/delete-notify", notify.adminDeleteNotify);
 };
-  

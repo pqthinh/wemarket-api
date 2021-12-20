@@ -35,32 +35,41 @@ module.exports = (app) => {
 
   /**
    * @swagger
-   * /admin/banner/get:
-   *   get:
+   * /admin/update-banner:
+   *   post:
    *     description: get banner by id
    *     parameters:
    *       - name : idBanner
    *         in : body
-   *       - name : idAdmin
+   *       - name : url
+   *         in : body
+   *       - name : type
+   *         in : body
+   *       - name : description
    *         in : body
    *
    *     responses:
    *       200:
    *         description: Success
    */
-  app.get("/admin/banner/get", banner.getBannerDetail);
+  app.post("/admin/update-banner", banner.updateBanner);
 
   /**
    * @swagger
-   * admin/banner/create:
+   * admin/banner-create:
    *   post:
    *     description: create banner by admin
    *     parameters:
-   *        - name: url
+   *       - name : url
+   *         in : body
+   *       - name : type
+   *         in : body
+   *       - name : description
+   *         in : body
    *     responses:
    *       200:
    *         description: Success
    *
    */
-  app.post("/admin/banner/create", banner.createBanner);
+  app.post("/admin/banner-create", banner.createBanner);
 };
