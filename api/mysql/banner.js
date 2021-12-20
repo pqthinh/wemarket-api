@@ -119,6 +119,41 @@ const Banner = {
       await conn.release();
     }
   },
+  changeStatusBanner: async (req, res, next) => {
+    let conn;
+    let { idBanner, status } = req.body;
+    try {
+      if (!idBanner) {
+        const response = {
+          status: false,
+          message: "Bad request",
+        };
+        res.json(response);
+        return;
+      }
+      conn = await dbs.getConnection();
+      await conn.beginTransaction();
+      let sql;
+      sql = `update banner set status=?, updateAt=? where id = ?`;
+      await conn.query(sql, [status, new Date(), idBanner]);
+      await conn.commit();
+
+      const response = {
+        status: true,
+        result: `Update banner ${idBanner} success`,
+      };
+      res.json(response);
+    } catch (err) {
+      await conn.rollback();
+      next(err);
+      res.json({
+        status: false,
+        message: "Can't update banner",
+      });
+    } finally {
+      await conn.release();
+    }
+  },
 };
 
 module.exports = Banner;

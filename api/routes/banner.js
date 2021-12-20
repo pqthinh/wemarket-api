@@ -56,7 +56,7 @@ module.exports = (app) => {
 
   /**
    * @swagger
-   * admin/banner-create:
+   * /admin/banner-create:
    *   post:
    *     description: create banner by admin
    *     parameters:
@@ -72,4 +72,21 @@ module.exports = (app) => {
    *
    */
   app.post("/admin/banner-create", banner.createBanner);
+
+  /**
+   * @swagger
+   * /admin/banner-status:
+   *   post:
+   *     description: change status banner by admin
+   *     parameters:
+   *       - name : idBanner
+   *         in : body
+   *       - name : status
+   *         in : body
+   *     responses:
+   *       200:
+   *         description: Success
+   *
+   */
+  app.post("/admin/banner-status", banner.changeStatusBanner);
 };
