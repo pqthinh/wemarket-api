@@ -399,7 +399,7 @@ const User = {
         let date = createdAt.getDate();
         let month = createdAt.getMonth() + 1;
         let year = createdAt.getFullYear();
-        let title = `Tài khoản người dùng ${username} mới được tạo`;
+        let title = `Tài khoản mới`;
         let content = `Tài khoản người dùng ${username} mới được tạo vào lúc ${h}:${m}:${s} ngày ${date}/${month}/${year}. Tài khoản đang chờ được kích hoạt`;
         for (let admin of admins) {
           adminNotis.push([admin.id, title, content]);
@@ -516,7 +516,7 @@ const User = {
       let date = updatedAt.getDate();
       let month = updatedAt.getMonth() + 1;
       let year = updatedAt.getFullYear();
-      let title = `Tài khoản người dùng ${user.username} đã được kích hoạt`;
+      let title = `Kích hoạt tài khoản`;
       let content = `Tài khoản người dùng ${user.username} đã được kích hoạt vào lúc ${h}:${m}:${s} ngày ${date}/${month}/${year}`;
       for (let admin of admins) {
         adminNotis.push([admin.id, title, content]);
@@ -722,7 +722,7 @@ const User = {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
       let sql, result;
-      //validate User 
+      //validate User
       let sqlUser = `select * from user where uid = ?`;
       let userRes = await conn.query(sqlUser, [uid]);
       await conn.commit();
@@ -747,7 +747,6 @@ const User = {
       where product.uid = ?`;
       let resultProduct = await conn.query(sqlProduct, [updatedAt, uid]);
       await conn.commit();
-
 
       //create notify
       let adminQuery = await conn.query(

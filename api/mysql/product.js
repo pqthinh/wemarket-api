@@ -501,8 +501,8 @@ const Product = {
       let product = products[0];
       //Update product
       sql = `update product
-                 set name = ?, description = ?, categoryId = ?, price =?, address = ?, quantity = ?, lat = ?, lng = ?, image = ?, updatedAt = ?, tag = ?, status = "pending"
-                 where id = ?`;
+            set name = ?, description = ?, categoryId = ?, price =?, address = ?, quantity = ?, lat = ?, lng = ?, image = ?, updatedAt = ?, tag = ?, status = "pending"
+            where id = ?`;
       result = await conn.query(sql, [
         name,
         description,
@@ -703,8 +703,8 @@ const Product = {
       let date = updatedAt.getDate();
       let month = updatedAt.getMonth() + 1;
       let year = updatedAt.getFullYear();
-      let title = `Sản phẩm ${product.code} của bạn đã được kích hoạt đăng lên`;
-      let content = `Sản phẩm ${product.code} của bạn đã được kích hoạt đăng lên vào lúc ${h}:${m}:${s} ngày ${date}/${month}/${year}.`;
+      let title = `Kích hoạt sp ${product.id}`;
+      let content = `Sản phẩm ${product.id} của bạn đã được kích hoạt vào lúc ${h}:${m}:${s} ngày ${date}/${month}/${year}.`;
       let sqlNoti = `INSERT INTO notify ( uid, title, content, productId) VALUES (?, ?, ?, ?)`;
       await conn.query(sqlNoti, [product.uid, title, content, idProduct]);
       await conn.commit();
@@ -717,7 +717,7 @@ const Product = {
       let admins = adminQuery[0];
       let adminNotis = [];
       let titleAdmin = `Sản phẩm ${product.code}`;
-      let contentAdmin = `Sản phẩm ${product.code} đã được kích hoạt đăng lên vào lúc ${h}:${m}:${s} ngày ${date}/${month}/${year}.`;
+      let contentAdmin = `Sản phẩm ${product.code} đã được kích hoạt vào lúc ${h}:${m}:${s} ngày ${date}/${month}/${year}.`;
       for (let admin of admins) {
         adminNotis.push([admin.id, titleAdmin, contentAdmin]);
       }
@@ -786,8 +786,8 @@ const Product = {
       let date = updatedAt.getDate();
       let month = updatedAt.getMonth() + 1;
       let year = updatedAt.getFullYear();
-      let title = `Sản phẩm ${product.code} của bạn bị cấm đăng`;
-      let content = `Sản phẩm ${product.code} của bạn đã bị cấm đăng lên vào lúc ${h}:${m}:${s} ngày ${date}/${month}/${year}.`;
+      let title = `Gỡ sản phẩm ${product.id}`;
+      let content = `Sản phẩm ${product.id} của bạn đã bị cấm đăng lên vào lúc ${h}:${m}:${s} ngày ${date}/${month}/${year}.`;
       let sqlNoti = `INSERT INTO notify ( uid, title, content, productId) VALUES (?, ?, ?, ?)`;
       await conn.query(sqlNoti, [product.uid, title, content, idProduct]);
       await conn.commit();

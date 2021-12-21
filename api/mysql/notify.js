@@ -8,12 +8,10 @@ const Notify = {
     try {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
-
       const result = await conn.query(
         `select * from product, user, notify where notify.uid=? and notify.productId=product.id and notify.uid= user.uid `,
         [uid]
       );
-
       const response = {
         status: true,
         message: "Get list notify success",
@@ -76,7 +74,7 @@ const Notify = {
       if (!idAdmin)
         res.json({ status: false, error: "Bad request | check iAdmin" });
 
-      sql = ` select * from admin_notify where admin_notify.admin_id =?`;
+      sql = `select * from admin_notify where admin_notify.admin_id =?`;
       result = await conn.query(sql, [idAdmin]);
       await conn.commit();
 
