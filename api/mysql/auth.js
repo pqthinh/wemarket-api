@@ -493,7 +493,7 @@ const User = {
     }
   },
   adminActiveUser: async (req, res, next) => {
-    let { idUser } = req.body;
+    let { uid } = req.body;
     let updatedAt = new Date();
     try {
       conn = await dbs.getConnection();
@@ -502,7 +502,7 @@ const User = {
       sql = `update user
              set status = "active",updatedAt = ?
              where user.id = ?`;
-      result = await conn.query(sql, [updatedAt, idUser]);
+      result = await conn.query(sql, [updatedAt, uid]);
       //create notify
       let adminQuery = await conn.query(
         `select * from admin where deletedAt is null `
@@ -517,7 +517,7 @@ const User = {
       let month = updatedAt.getMonth() + 1;
       let year = updatedAt.getFullYear();
       let title = `Kích hoạt tài khoản`;
-      let content = `Tài khoản người dùng ${user.username} đã được kích hoạt vào lúc ${h}:${m}:${s} ngày ${date}/${month}/${year}`;
+      let content = `Tài khoản người dùng ${result[0].username} đã được kích hoạt vào lúc ${h}:${m}:${s} ngày ${date}/${month}/${year}`;
       for (let admin of admins) {
         adminNotis.push([admin.id, title, content]);
       }
@@ -714,14 +714,14 @@ const User = {
       if (!uid) {
         const response = {
           status: false,
-          message: "uid is required",
+          message: "id is required",
         };
         res.json(response);
       }
 
       conn = await dbs.getConnection();
       await conn.beginTransaction();
-      let sql, result;
+
       //validate User
       let sqlUser = `select * from user where uid = ?`;
       let userRes = await conn.query(sqlUser, [uid]);
@@ -735,17 +735,19 @@ const User = {
         return;
       }
       let user = userRes[0][0];
-      sql = `update user
-             set status = "ban",updatedAt = ?
-             where user.uid = ?`;
-      result = await conn.query(sql, [updatedAt, uid]);
+      result = await conn.query(
+        `update user
+      set status = "ban",updatedAt = ?
+      where user.uid = ?`,
+        [updatedAt, uid]
+      );
       await conn.commit();
 
       //update product
       let sqlProduct = `update product 
       set status = "ban", updatedAt = ?
       where product.uid = ?`;
-      let resultProduct = await conn.query(sqlProduct, [updatedAt, uid]);
+      await conn.query(sqlProduct, [updatedAt, uid]);
       await conn.commit();
 
       //create notify
@@ -761,7 +763,7 @@ const User = {
       let date = updatedAt.getDate();
       let month = updatedAt.getMonth() + 1;
       let year = updatedAt.getFullYear();
-      let title = `Tài khoản người dùng ${user.username} đã bị cấm`;
+      let title = `Ban người dùng `;
       let content = `Tài khoản người dùng ${user.username} đã bị cấm vào lúc ${h}:${m}:${s} ngày ${date}/${month}/${year}`;
       for (let admin of admins) {
         adminNotis.push([admin.id, title, content]);

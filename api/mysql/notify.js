@@ -74,7 +74,7 @@ const Notify = {
       if (!idAdmin)
         res.json({ status: false, error: "Bad request | check iAdmin" });
 
-      sql = `select * from admin_notify where admin_notify.admin_id =?`;
+      sql = `select * from admin_notify where admin_notify.admin_id =? order by id desc`;
       result = await conn.query(sql, [idAdmin]);
       await conn.commit();
 
