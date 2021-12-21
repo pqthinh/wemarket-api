@@ -1221,12 +1221,12 @@ const Product = {
       }
       await conn.beginTransaction();
       let r = await conn.query(
-        `select * from bookmark, product, user  where bookmark.uid = ? and product.id= bookmark.productId and bookmark.uid=user.uid`,
+        `select * from product, user, bookmark  where bookmark.uid = ? and product.id= bookmark.productId and bookmark.uid=user.uid`,
         [uid]
       );
       await conn.commit;
       let result = r[0];
-      if (idCategory) {
+      if (idCategory != "all") {
         result = result.filter((res) => res.categoryId == idCategory);
       }
 
