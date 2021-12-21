@@ -700,8 +700,8 @@ const Product = {
       let year = updatedAt.getFullYear();
       let title = `Sản phẩm ${product.code} của bạn đã được kích hoạt đăng lên`;
       let content = `Sản phẩm ${product.code} của bạn đã được kích hoạt đăng lên vào lúc ${h}:${m}:${s} ngày ${date}/${month}/${year}.`;
-      let sqlNoti = `INSERT INTO notify ( uid, title, content) VALUES (?, ?, ?)`;
-      await conn.query(sqlNoti, [product.uid, title, content]);
+      let sqlNoti = `INSERT INTO notify ( uid, title, content, productId) VALUES (?, ?, ?, ?)`;
+      await conn.query(sqlNoti, [product.uid, title, content, idProduct]);
       await conn.commit();
 
       //create admin_notify
@@ -777,8 +777,8 @@ const Product = {
       let year = updatedAt.getFullYear();
       let title = `Sản phẩm ${product.code} của bạn bị cấm đăng`;
       let content = `Sản phẩm ${product.code} của bạn đã bị cấm đăng lên vào lúc ${h}:${m}:${s} ngày ${date}/${month}/${year}.`;
-      let sqlNoti = `INSERT INTO notify ( uid, title, content) VALUES (?, ?, ?)`;
-      await conn.query(sqlNoti, [product.uid, title, content]);
+      let sqlNoti = `INSERT INTO notify ( uid, title, content, productId) VALUES (?, ?, ?, ?)`;
+      await conn.query(sqlNoti, [product.uid, title, content, idProduct]);
       await conn.commit();
 
       //create admin_notify
