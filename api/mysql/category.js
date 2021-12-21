@@ -168,17 +168,33 @@ const Category = {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
       let sql, result;
-      sql = `SELECT subcategory.id, subcategory.categoryId AS categoryId, subcategory.name AS subcategoryName, subcategory.image AS subcategoryImage,subcategory.icon AS subcategoryIcon, category.* FROM subcategory LEFT JOIN category ON subcategory.categoryId = category.id`;
+      sql = `SELECT subcategory.*, category.id as categoryId, category.name AS categoryName, category.image AS categoryImage,subcategory.icon AS categoryIcon FROM subcategory LEFT JOIN category ON subcategory.categoryId = category.id order by subcategory.categoryId`;
       result = await conn.query(sql);
       let subcategory = result[0];
       if (idCategory) {
         subcategory = subcategory.filter((x) => x.categoryId == idCategory);
       }
 
-      let temp = subcategory.reduce((r, a) => {
-        r.children = [...(r[a.categoryId] || []), a];
-        return r;
-      }, {});
+      const groupBy = (items, key) =>
+        items.reduce(
+          (result, item) => ({
+            ...result,
+            [item[key]]: [...(result[item[key]] || []), item],
+          }),
+          {}
+        );
+
+      let temp = Object.values(groupBy(subcategory, "categoryId")).map(
+        (category) => {
+          return {
+            id: category[0].categoryId,
+            name: category[0].categoryName,
+            image: category[0].categoryImage,
+            icon: category[0].categoryIcon,
+            children: category,
+          };
+        }
+      );
 
       const response = {
         total: subcategory.length,
