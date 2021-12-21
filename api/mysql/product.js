@@ -685,10 +685,15 @@ const Product = {
       result = await conn.query(sql, [idAdmin, updatedAt, idProduct]);
 
       //Active image
-      await conn.query(
-        'update image set status = "active", updatedAt = ? where productId = ?',
-        [updatedAt, idProduct]
-      );
+      try {
+        await conn.query(
+          'update image set status = "active", updatedAt = ? where productId = ?',
+          [updatedAt, idProduct]
+        );
+      } catch (err) {
+        console.log(err);
+      }
+
       await conn.commit();
 
       //create user notify
@@ -734,6 +739,7 @@ const Product = {
   },
   adminBanPost: async (req, res, next) => {
     let { idProduct, idAdmin } = req.body;
+    console.log(idProduct, idAdmin);
     let updatedAt = new Date();
     try {
       conn = await dbs.getConnection();
@@ -762,10 +768,15 @@ const Product = {
       result = await conn.query(sql, [idAdmin, updatedAt, idProduct]);
 
       //Active image
-      await conn.query(
-        'update image set status = "ban", updatedAt = ? where productId = ?',
-        [updatedAt, idProduct]
-      );
+      try {
+        await conn.query(
+          'update image set status = "ban", updatedAt = ? where productId = ?',
+          [updatedAt, idProduct]
+        );
+      } catch (err) {
+        console.log(err);
+      }
+
       await conn.commit();
 
       //create user notify
@@ -1221,12 +1232,12 @@ const Product = {
       }
       await conn.beginTransaction();
       let r = await conn.query(
-        `select * from bookmark, product, user  where bookmark.uid = ? and product.id= bookmark.productId and bookmark.uid=user.uid`,
+        `select * from product, user, bookmark  where bookmark.uid = ? and product.id= bookmark.productId and bookmark.uid=user.uid order by bookmark.id desc`,
         [uid]
       );
       await conn.commit;
       let result = r[0];
-      if (idCategory) {
+      if (idCategory != "all") {
         result = result.filter((res) => res.categoryId == idCategory);
       }
 
