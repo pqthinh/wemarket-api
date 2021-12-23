@@ -7,10 +7,10 @@ const Product = {
     try {
       await conn.beginTransaction();
       let sql, result;
-      let { limit = 10, offset = 0, lat, lng } = req.query;
+      let { limit = 10, offset = 0, lat, lng, range } = req.query;
       sql = `select product.*,user.username,user.address AS userAddress,user.email,user.phone,user.avatar, category.name as categoryName, category.icon as categoryIcon 
       from user, product, category 
-      where product.status ="active" and user.uid=product.uid and product.categoryId=category.id and product.deletedAt is null`;
+      where product.status ="active" and user.uid=product.uid and product.categoryId=category.id and product.deletedAt is null order by product.id desc`;
 
       result = await conn.query(sql);
       await conn.commit();
@@ -55,6 +55,10 @@ const Product = {
           x.isFav = true;
         }
       });
+
+      if (range) {
+        productResult = productResult.filter((p) => p.distance < range);
+      }
 
       const response = {
         total: product.length,
@@ -1477,6 +1481,108 @@ const Product = {
         status: false,
         message: "Can't update comment",
       });
+    } finally {
+      await conn.release();
+    }
+  },
+  getTopProductNew: async (req, res, next) => {
+    let conn = await dbs.getConnection();
+    try {
+      await conn.beginTransaction();
+      let sql, result;
+      let { lat, lng, range } = req.query;
+      sql = `select product.*,user.username,user.address AS userAddress,user.email,user.phone,user.avatar, category.name as categoryName, category.icon as categoryIcon 
+      from user, product, category 
+      where product.status ="active" and user.uid=product.uid and product.categoryId=category.id and product.deletedAt is null order by product.id desc`;
+
+      result = await conn.query(sql);
+      await conn.commit();
+      let product = result[0];
+      let productResult = product
+        .filter(
+          (p) =>
+            (new Date() - new Date(p?.createdAt)) / (24 * 60 * 60 * 1000) > 21
+        )
+        .slice(0, product.length > 20 ? 20 : product.length);
+
+      if (lat && lng) {
+        let R = 6371; //km
+        productResult.forEach((x) => {
+          let dLat = (lat - x.lat) * (Math.PI / 180);
+          let dLon = (lng - x.lng) * (Math.PI / 180);
+          let lat1 = x.lat * (Math.PI / 180);
+          let lat2 = lat * (Math.PI / 180);
+          let a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.sin(dLon / 2) *
+              Math.sin(dLon / 2) *
+              Math.cos(lat1) *
+              Math.cos(lat2);
+          let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+          x.distance = Math.round(R * c * 100) / 100;
+        });
+      }
+
+      if (range) {
+        productResult = productResult.filter((p) => p.distance < range);
+      }
+
+      const response = {
+        status: true,
+        result: productResult,
+      };
+      res.json(response);
+    } catch (err) {
+      await conn.rollback();
+      next(err);
+    } finally {
+      await conn.release();
+    }
+  },
+  getTopSearch: async (req, res, next) => {
+    let conn = await dbs.getConnection();
+    try {
+      await conn.beginTransaction();
+      let sql, result;
+      let { lat, lng, range } = req.query;
+      sql = `select product.*,user.username,user.address AS userAddress,user.email,user.phone,user.avatar, category.name as categoryName, category.icon as categoryIcon 
+      from user, product, category 
+      where product.status ="active" and user.uid=product.uid and product.categoryId=category.id and product.deletedAt is null order by product.view desc`;
+
+      result = await conn.query(sql);
+      await conn.commit();
+      let productResult = result[0];
+
+      if (lat && lng) {
+        let R = 6371; //km
+        productResult.forEach((x) => {
+          let dLat = (lat - x.lat) * (Math.PI / 180);
+          let dLon = (lng - x.lng) * (Math.PI / 180);
+          let lat1 = x.lat * (Math.PI / 180);
+          let lat2 = lat * (Math.PI / 180);
+          let a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.sin(dLon / 2) *
+              Math.sin(dLon / 2) *
+              Math.cos(lat1) *
+              Math.cos(lat2);
+          let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+          x.distance = Math.round(R * c * 100) / 100;
+        });
+      }
+
+      if (range) {
+        productResult = productResult.filter((p) => p.distance < range);
+      }
+
+      const response = {
+        status: true,
+        result: productResult.slice(0, 30),
+      };
+      res.json(response);
+    } catch (err) {
+      await conn.rollback();
+      next(err);
     } finally {
       await conn.release();
     }

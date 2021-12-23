@@ -406,4 +406,20 @@ module.exports = (app) => {
    *
    */
   app.post("/admin/ban-post", product.adminBanPost);
+  /**
+   * @swagger
+   * /product/new-post:
+   *   get:
+   *     parameters:
+   *     responses:
+   */
+  app.get("/product/new-post", product.getTopProductNew);
+  /**
+   * @swagger
+   * /product/top-view:
+   *   get:
+   *     parameters:
+   *     responses:
+   */
+  app.get("/product/top-view", product.getTopSearch);
 };
