@@ -297,37 +297,35 @@ const Product = {
   },
   createProduct: async (req, res, next) => {
     let conn;
-    let {
-      name,
-      description,
-      categoryId,
-      price,
-      uid,
-      quantity,
-      location = {},
-      image = "https://cdn.mobilecity.vn/mobilecity-vn/images/2021/07/iphone-11-pro-max-mat-truoc-sau.jpg",
-      images = [],
-      tag = [],
-      categoryName,
-      username,
-    } = req.body;
-    let createdAt = new Date();
-    let { address, lat, lng } = location;
+    console.log(req.body);
     try {
+      let {
+        title,
+        description,
+        categoryId,
+        price,
+        uid,
+        quantity,
+        location = {},
+        image = "https://cdn.mobilecity.vn/mobilecity-vn/images/2021/07/iphone-11-pro-max-mat-truoc-sau.jpg",
+        images = [],
+        tag = [],
+        categoryName,
+      } = req.body;
+      let createdAt = new Date();
+      let { address, lat, lng } = location;
+
       conn = await dbs.getConnection();
       await conn.beginTransaction();
       const validate = {};
-
       if (images.length > 10) validate.images = "Max length images is 10";
-      if (!name.trim()) validate.name = "name is require field ";
+      if (!title) validate.title = "title is require field ";
       if (!description) validate.description = "description is require field ";
       if (!categoryId) validate.categoryId = "categoryId is require field ";
       if (!price || price < 0) validate.price = "price is invalid ";
       if (!uid) validate.uid = "uid is required";
-      if (!location || !lat || !lng || !address.trim())
+      if (!location || !lat || !lng || !address)
         validate.location = "location is invalid ";
-      if (!image) validate.image = "spotlight image is invalid ";
-      if (tag && tag.length > 5) validate.tag = "Tag limit 5";
 
       if (Object.keys(validate).length !== 0) {
         res.json({ status: false, error: validate });
@@ -338,7 +336,7 @@ const Product = {
       let tagStr = JSON.stringify(tag);
       let time = createdAt.getTime();
       let code = `PRODUCT${time}`;
-
+      image = images[0];
       sqlUser = `Select * from user where uid = ?`;
       let hasUser = await conn.query(sqlUser, [uid]);
       await conn.commit();
@@ -353,7 +351,7 @@ const Product = {
       sql = `INSERT INTO product (code, name, description, categoryId, price, status, uid, createdAt, updatedAt, address, quantity, lat, lng, image, tag) VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
       result = await conn.query(sql, [
         code.toString(),
-        name,
+        title,
         description,
         Number(categoryId),
         Number(price),
@@ -396,10 +394,10 @@ const Product = {
       let date = createdAt.getDate();
       let month = createdAt.getMonth() + 1;
       let year = createdAt.getFullYear();
-      let title = `Sản phẩm mới`;
+      let titleMessage = `Sản phẩm mới`;
       let content = `Người dùng ${user.username} đã tạo sản phẩm ${code} vào lúc ${h}:${m}:${s} ngày ${date}/${month}/${year}. Sản phẩm này đang chờ được duyệt`;
       for (let admin of admins) {
-        adminNotis.push([admin.id, title, content]);
+        adminNotis.push([admin.id, titleMessage, content]);
       }
       let sqlNoti = `INSERT INTO admin_notify ( admin_id, title, content) VALUES ?`;
       await conn.query(sqlNoti, [adminNotis]);
@@ -411,13 +409,13 @@ const Product = {
         id: idProductAfterCreate,
         type: "product",
         body: {
-          name: name,
+          name: title,
           id: idProductAfterCreate,
           description: description,
           address: address,
           category: categoryName,
           tag: tagStr,
-          username: username,
+          username: user.username,
         },
       });
 
