@@ -75,8 +75,7 @@ const Product = {
   },
   getProductDetail: async (req, res, next) => {
     let conn;
-    let { idProduct, uid } = req.params;
-    let { lat, lng } = req.query;
+    let { idProduct, uid, lat, lng } = req.body;
 
     try {
       conn = await dbs.getConnection();

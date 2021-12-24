@@ -33,7 +33,7 @@ module.exports = (app) => {
    *       200:
    *         description: Success
    */
-  app.get("/common/product/:idProduct", product.getProductDetail);
+  app.post("/common/product", product.getProductDetail);
 
   /**
    * @swagger
