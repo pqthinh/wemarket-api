@@ -318,13 +318,11 @@ const Product = {
       await conn.beginTransaction();
       const validate = {};
 
-      if (images.length > 8) validate.images = "Max length images is 8";
+      if (images.length > 10) validate.images = "Max length images is 10";
       if (!name.trim()) validate.name = "name is require field ";
       if (!description) validate.description = "description is require field ";
       if (!categoryId) validate.categoryId = "categoryId is require field ";
       if (!price || price < 0) validate.price = "price is invalid ";
-      if (!categoryName) validate.categoryName = "categoryName is required";
-      if (!username) validate.username = "username is required";
       if (!uid) validate.uid = "uid is required";
       if (!location || !lat || !lng || !address.trim())
         validate.location = "location is invalid ";
