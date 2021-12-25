@@ -1624,6 +1624,40 @@ const Product = {
       await conn.release();
     }
   },
+  ListActiveCommentOfProduct: async (req, res, next) => {
+    let conn,
+      { limit = 10, offset = 0 } = req.query,
+      { idProduct } = req.body;
+    try {
+      conn = await dbs.getConnection();
+      await conn.beginTransaction();
+      let sql, result;
+      sql = `select c.*, 
+      ub.username as buyerUsername, ub.avatar buyerAvatar, ub.address buyerAddress, ub.email buyerEmail
+      from comment c, order_product op, user ub
+      where c.orderId = op.id and ub.uid = op.uid and c.status = 'active' and op.product_id = ?`;
+      result = await conn.query(sql, [
+        idProduct,
+      ]);
+      await conn.commit();
+      let comments = result[0];
+      let skip = Number(offset > 0 ? offset : 0) * Number(limit);
+      let commentResult = comments.slice(skip, skip + Number(limit));
+
+      const response = {
+        total: comments.length,
+        page: Number(offset) + 1,
+        result: commentResult,
+      };
+
+      res.json(response);
+    } catch (err) {
+      await conn.rollback();
+      next(err);
+    } finally {
+      await conn.release();
+    }
+  },
 };
 
 module.exports = Product;
