@@ -432,4 +432,19 @@ module.exports = (app) => {
    *     responses:
    */
      app.get("/product/top-similar", product.listSimilarProduct);
+       /**
+   * @swagger
+   * /product/comment:
+   *   get:
+   *     description: get all active comment of product
+   *     parameters:
+   *      - name: idProduct
+   *        in: body
+   *
+   *     responses:
+   *       200:
+   *         description: Success
+   *
+   */
+  app.get("/product/comment", product.ListActiveCommentOfProduct);
 };
