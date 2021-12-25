@@ -161,6 +161,86 @@ const Order = {
       await conn.release();
     }
   },
+  getListPendingOrderOfBuyer: async (req, res, next) => {
+    let conn,
+      { limit = 20, offset = 0, idProduct } = req.query;
+    let { orderByDate, orderByQuantity, orderByStatus,uid } = req.body;
+    try {
+      conn = await dbs.getConnection();
+      await conn.beginTransaction();
+      let sql, result;
+      //validate
+      if (!uid) {
+        const response = {
+          status: false,
+          message: "uid is required",
+        };
+        res.json(response);
+        return;
+      }
+      sql = `select op.*, ub.username as buyerUsername, ub.avatar buyerAvatar, ub.address buyerAddress, ub.email buyerEmail,
+            p.name, p.quantity productQuantity, p.image, p.price, p.uid sellerUid, 
+            us.username sellerUsername, us.avatar sellerAvatar, us.address sellerAddress, us.email sellerEmail
+            from order_product op, user ub, user us, product p
+            where ub.uid = op.uid and p.id = op.product_id and us.uid = p.uid and op.uid = ? and op.deletedAt is null and op.status = 'pending'`;
+      result = await conn.query(sql, [uid]);
+      await conn.commit();
+      let order = result[0];
+      let skip = Number(offset > 0 ? offset : 0) * Number(limit);
+
+      //filter
+      if (idProduct) {
+        order = order.filter((x) => x.product_id == idProduct);
+      }
+      if (orderByDate) {
+        if (orderByDate == "desc") {
+          order = order.sort(function (a, b) {
+            return new Date(b.createdAt) - new Date(a.createdAt);
+          });
+        } else {
+          order = order.sort(function (a, b) {
+            return new Date(a.createdAt) - new Date(b.createdAt);
+          });
+        }
+      }
+      if (orderByQuantity) {
+        if (orderByQuantity == "desc") {
+          order = order.sort(function (a, b) {
+            return b.quantity - a.quantity;
+          });
+        } else {
+          order = order.sort(function (a, b) {
+            return a.quantity - b.quantity;
+          });
+        }
+      }
+      //sort by status
+      if (orderByStatus) {
+        if (orderByStatus == "desc") {
+          order = order.sort(function (a, b) {
+            return b.status.localeCompare(a.status);
+          });
+        } else {
+          order = order.sort(function (a, b) {
+            return a.status.localeCompare(b.status);
+          });
+        }
+      }
+      let orderRes = order.slice(skip, skip + Number(limit));
+
+      const response = {
+        total: order.length,
+        page: Number(offset) + 1,
+        result: orderRes,
+      };
+      res.json(response);
+    } catch (err) {
+      await conn.rollback();
+      next(err);
+    } finally {
+      await conn.release();
+    }
+  },
   BuyerGetOrderDetail: async (req, res, next) => {
     let conn,
       { idOrder, uid } = req.query;

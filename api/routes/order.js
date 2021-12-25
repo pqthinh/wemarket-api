@@ -54,6 +54,32 @@ module.exports = (app) => {
    *
    */
   app.get("/order/list-of-buyer", order.getListOrderOfBuyer);
+   /**
+   * @swagger
+   * /order/list-pending:
+   *   get:
+   *     description: get all pending order of buyer
+   *     parameters:
+   *      - name: limit
+   *        in: query
+   *      - name: offset
+   *        in: query
+   *      - name: uid
+   *        in: query
+   *      - name: idProduct
+   *        in: query
+   *      - name: orderByDate
+   *        in: body
+   *      - name: orderByQuantity
+   *        in: body
+   *      - name: orderByStatus
+   *        in: body
+   *     responses:
+   *       200:
+   *         description: Success
+   *
+   */
+    app.get("/order/list-pending", order.getListPendingOrderOfBuyer);
 
   /**
    * @swagger
