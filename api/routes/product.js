@@ -422,4 +422,14 @@ module.exports = (app) => {
    *     responses:
    */
   app.get("/product/top-view", product.getTopSearch);
+    /**
+   * @swagger
+   * /product/top-similar:
+   *   get:
+   *     parameters:
+   *      - name: idProduct
+   *        in: body
+   *     responses:
+   */
+     app.get("/product/top-similar", product.listSimilarProduct);
 };

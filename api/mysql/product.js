@@ -271,7 +271,8 @@ const Product = {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
       let sql, result, count, total;
-      sql = `select product.*,user*, category.name as categoryName, category.icon as categoryIcon from category, product, user where product.status ="active" and product.deletedAt is null AND user.uid = product.uid AND product.categoryId = category.id AND category.id = ? limit ? offset ?`;
+      sql = `select product.*,user*, category.name as categoryName, category.icon as categoryIcon 
+      from category, product, user where product.status ="active" and product.deletedAt is null AND user.uid = product.uid AND product.categoryId = category.id AND category.id = ? limit ? offset ?`;
       result = await conn.query(sql, [
         idCategory.toString(),
         Number(limit),
@@ -1573,6 +1574,47 @@ const Product = {
       const response = {
         status: true,
         result: productResult.slice(0, 30),
+      };
+      res.json(response);
+    } catch (err) {
+      await conn.rollback();
+      next(err);
+    } finally {
+      await conn.release();
+    }
+  },
+  listSimilarProduct: async (req, res, next) => {
+    let conn,
+      { limit = 10, offset = 0 } = req.query;
+    let { idProduct} = req.body;
+    try {
+      conn = await dbs.getConnection();
+      await conn.beginTransaction();
+      let sql, result, count, total;
+      //get subcategory id
+      sql = `select * from product where id = ?`;
+      result = await conn.query(sql, [
+        idProduct,
+      ]);
+      await conn.commit();
+      let product = result[0][0];
+      let idSubcategory = [product.subcategoryId];
+      let idCategory = [product.categoryId];
+
+      let sqlProducts = `select product.*,user.uid, user.username, user.address AS userAddress, user.email, user.phone, user.avatar, category.name AS categoryName, category.icon as iconCategory
+      from category, product, user
+      where product.status ="active" and product.deletedAt is null AND user.uid = product.uid AND category.id=product.categoryId`;
+      let resultProducts = await conn.query(sqlProducts);
+      await conn.commit();
+      let AllProducts = resultProducts[0];
+      let SimilarProducts = idSubcategory[0]!=null ? AllProducts.filter(x => idSubcategory.includes(x.subcategoryId) ):AllProducts.filter(x => idCategory.includes(x.categoryId) );
+      let skip = Number(offset > 0 ? offset : 0) * Number(limit);
+      let productResult = SimilarProducts.slice(skip, skip + Number(limit));
+
+      const response = {
+        total: SimilarProducts.length,
+        page: Number(offset) + 1,
+        result: productResult,
       };
       res.json(response);
     } catch (err) {
