@@ -1586,16 +1586,14 @@ const Product = {
   listSimilarProduct: async (req, res, next) => {
     let conn,
       { limit = 10, offset = 0 } = req.query;
-    let { idProduct} = req.body;
+    let { idProduct } = req.body;
     try {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
       let sql, result, count, total;
       //get subcategory id
       sql = `select * from product where id = ?`;
-      result = await conn.query(sql, [
-        idProduct,
-      ]);
+      result = await conn.query(sql, [idProduct]);
       await conn.commit();
       let product = result[0][0];
       let idSubcategory = [product.subcategoryId];
@@ -1607,7 +1605,10 @@ const Product = {
       let resultProducts = await conn.query(sqlProducts);
       await conn.commit();
       let AllProducts = resultProducts[0];
-      let SimilarProducts = idSubcategory[0]!=null ? AllProducts.filter(x => idSubcategory.includes(x.subcategoryId) ):AllProducts.filter(x => idCategory.includes(x.categoryId) );
+      let SimilarProducts =
+        idSubcategory[0] != null
+          ? AllProducts.filter((x) => idSubcategory.includes(x.subcategoryId))
+          : AllProducts.filter((x) => idCategory.includes(x.categoryId));
       let skip = Number(offset > 0 ? offset : 0) * Number(limit);
       let productResult = SimilarProducts.slice(skip, skip + Number(limit));
 
@@ -1636,9 +1637,7 @@ const Product = {
       ub.username as buyerUsername, ub.avatar buyerAvatar, ub.address buyerAddress, ub.email buyerEmail
       from comment c, order_product op, user ub
       where c.orderId = op.id and ub.uid = op.uid and c.status = 'active' and op.product_id = ?`;
-      result = await conn.query(sql, [
-        idProduct,
-      ]);
+      result = await conn.query(sql, [idProduct]);
       await conn.commit();
       let comments = result[0];
       let skip = Number(offset > 0 ? offset : 0) * Number(limit);

@@ -422,20 +422,20 @@ module.exports = (app) => {
    *     responses:
    */
   app.get("/product/top-view", product.getTopSearch);
-    /**
+  /**
    * @swagger
    * /product/top-similar:
-   *   get:
+   *   post:
    *     parameters:
    *      - name: idProduct
    *        in: body
    *     responses:
    */
-     app.get("/product/top-similar", product.listSimilarProduct);
-       /**
+  app.post("/product/top-similar", product.listSimilarProduct);
+  /**
    * @swagger
    * /product/comment:
-   *   get:
+   *   post:
    *     description: get all active comment of product
    *     parameters:
    *      - name: idProduct
@@ -446,5 +446,5 @@ module.exports = (app) => {
    *         description: Success
    *
    */
-  app.get("/product/comment", product.ListActiveCommentOfProduct);
+  app.post("/product/comment", product.ListActiveCommentOfProduct);
 };
