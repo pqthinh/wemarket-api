@@ -501,7 +501,7 @@ const User = {
       let sql, result;
       sql = `update user
              set status = "active",updatedAt = ?
-             where user.id = ?`;
+             where user.uid = ?`;
       result = await conn.query(sql, [updatedAt, uid]);
       //create notify
       let adminQuery = await conn.query(
