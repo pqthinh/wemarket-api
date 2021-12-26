@@ -422,8 +422,6 @@ const User = {
       uid,
       username,
       address,
-      email,
-      phone,
       gender = null,
       birthday,
       avatar = null,
@@ -434,29 +432,23 @@ const User = {
       await conn.beginTransaction();
 
       let result, response;
+      let sql = `update user 
+                 set username = ?, address = ?, gender =?, birthday = ?, avatar = ?, updatedAt = ? 
+                 where uid = ?`;
+      await conn.query(sql, [
+        username,
+        address,
+        gender,
+        birthday,
+        avatar,
+        updatedAt,
+        uid,
+      ]);
+      await conn.commit();
+      response = { status: 1, message: "success" };
+      res.json({ response });
+    
 
-      if (!email || !phone) {
-        response = { error: true, message: "Email or phone is empty" };
-        res.json({ response });
-      } else {
-        let sql = `update user 
-                   set username = ?, address = ?, email = ?, phone = ?, gender =?, birthday = ?, avatar = ?, updatedAt = ? 
-                   where uid = ?`;
-        await conn.query(sql, [
-          username,
-          address,
-          email,
-          phone,
-          gender,
-          birthday,
-          avatar,
-          updatedAt,
-          uid,
-        ]);
-        await conn.commit();
-        response = { status: 1, message: "success" };
-        res.json({ response });
-      }
     } catch (err) {
       await conn.rollback();
       next(err);
