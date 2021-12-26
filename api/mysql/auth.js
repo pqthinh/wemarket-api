@@ -455,7 +455,10 @@ const User = {
         let string = `avatar = "${avatar}"`;
         updateString.push(string);
       }
-      let string = `updatedAt = "${updatedAt}"`;
+      let date = updatedAt.getDate();
+      let month = updatedAt.getMonth() + 1;
+      let year = updatedAt.getFullYear();
+      let string = `updatedAt = "${year}/${month}/${date}"`;
       updateString.push(string)
       let uidString = `uid = "${uid}"`
       let updateRes = updateString.join();
