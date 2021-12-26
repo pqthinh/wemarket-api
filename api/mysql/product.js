@@ -346,7 +346,13 @@ const Product = {
         return;
       }
       let user = hasUser[0][0];
-
+      let h = createdAt.getHours();
+      let m = createdAt.getMinutes();
+      let s = createdAt.getSeconds();
+      let date = createdAt.getDate();
+      let month = createdAt.getMonth() + 1;
+      let year = createdAt.getFullYear();
+      let createdAtString = `"${year}/${month}/${date}"`
       //create product
       sql = `INSERT INTO product (code, name, description, categoryId, price, status, uid, createdAt, updatedAt, address, quantity, lat, lng, image, tag) VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
       result = await conn.query(sql, [
@@ -356,8 +362,8 @@ const Product = {
         Number(categoryId),
         Number(price),
         uid,
-        createdAt,
-        createdAt,
+        createdAtString,
+        createdAtString,
         address,
         Number(quantity),
         lat,
@@ -388,12 +394,6 @@ const Product = {
       await conn.commit();
       let admins = adminQuery[0];
       let adminNotis = [];
-      let h = createdAt.getHours();
-      let m = createdAt.getMinutes();
-      let s = createdAt.getSeconds();
-      let date = createdAt.getDate();
-      let month = createdAt.getMonth() + 1;
-      let year = createdAt.getFullYear();
       let titleMessage = `Sản phẩm mới`;
       let content = `Người dùng ${user.username} đã tạo sản phẩm ${code} vào lúc ${h}:${m}:${s} ngày ${date}/${month}/${year}. Sản phẩm này đang chờ được duyệt`;
       for (let admin of admins) {
@@ -499,6 +499,15 @@ const Product = {
         return;
       }
       let product = products[0];
+
+      
+      let h = updatedAt.getHours();
+      let m = updatedAt.getMinutes();
+      let s = updatedAt.getSeconds();
+      let date = updatedAt.getDate();
+      let month = updatedAt.getMonth() + 1 ;
+      let year = updatedAt.getFullYear();
+      let updatedAtString = `"${year}/${month}/${date}"`
       //Update product
       sql = `update product
             set name = ?, description = ?, categoryId = ?, price =?, address = ?, quantity = ?, lat = ?, lng = ?, image = ?, updatedAt = ?, tag = ?, status = "pending"
@@ -513,7 +522,7 @@ const Product = {
         lat,
         lng,
         image,
-        updatedAt,
+        updatedAtString,
         tagStr,
         idProduct,
       ]);
@@ -521,7 +530,7 @@ const Product = {
       //update image
       await conn.query(
         "update image set deletedAt = ?, updatedAt = ? where productId = ?",
-        [updatedAt, updatedAt, idProduct]
+        [updatedAtString, updatedAtString, idProduct]
       );
 
       let imgQuery = await conn.query(
@@ -544,8 +553,8 @@ const Product = {
           let resultImg = await conn.query(sql, [
             idProduct,
             img,
-            updatedAt,
-            updatedAt,
+            updatedAtString,
+            updatedAtString,
           ]);
           await conn.commit();
         }
@@ -560,12 +569,6 @@ const Product = {
       await conn.commit();
       let admins = adminQuery[0];
       let adminNotis = [];
-      let h = updatedAt.getHours();
-      let m = updatedAt.getMinutes();
-      let s = updatedAt.getSeconds();
-      let date = updatedAt.getDate();
-      let month = updatedAt.getMonth() + 1 ;
-      let year = updatedAt.getFullYear();
       let title = `Người dùng ${user.username} đã sửa thông tin sản phẩm ${product.code}`;
       let content = `Người dùng ${user.username} đã sửa thông tin sản phẩm ${product.code} vào lúc ${h}:${m}:${s} ngày ${date}/${month}/${year}. Sản phẩm này đang chờ được duyệt`;
       for (let admin of admins) {
@@ -622,6 +625,10 @@ const Product = {
         return;
       }
 
+      let date = deletedAt.getDate();
+      let month = deletedAt.getMonth() + 1;
+      let year = deletedAt.getFullYear();
+      let deletedAtString = `"${year}/${month}/${date}"`;
       //delete
       sql = `update product 
              set deletedAt = ?, updatedAt = ?
@@ -632,7 +639,7 @@ const Product = {
       //delete image
       await conn.query(
         "update image set deletedAt = ?, updatedAt = ? where productId = ?",
-        [deletedAt, deletedAt, idProduct]
+        [deletedAtString, deletedAtString, idProduct]
       );
       await conn.commit();
 
@@ -678,17 +685,25 @@ const Product = {
         return;
       }
       let product = products[0];
+      
+      let h = updatedAt.getHours();
+      let m = updatedAt.getMinutes();
+      let s = updatedAt.getSeconds();
+      let date = updatedAt.getDate();
+      let month = updatedAt.getMonth() + 1;
+      let year = updatedAt.getFullYear();
+      let updatedAtString = `"${year}/${month}/${date}"`;
       //Active product
       sql = `update product 
              set status = "active",admin_id= ?, updatedAt = ?
              where product.id = ?`;
-      result = await conn.query(sql, [idAdmin, updatedAt, idProduct]);
+      result = await conn.query(sql, [idAdmin, updatedAtString, idProduct]);
 
       //Active image
       try {
         await conn.query(
           'update image set status = "active", updatedAt = ? where productId = ?',
-          [updatedAt, idProduct]
+          [updatedAtString, idProduct]
         );
       } catch (err) {
         console.log(err);
@@ -697,12 +712,6 @@ const Product = {
       await conn.commit();
 
       //create user notify
-      let h = updatedAt.getHours();
-      let m = updatedAt.getMinutes();
-      let s = updatedAt.getSeconds();
-      let date = updatedAt.getDate();
-      let month = updatedAt.getMonth() + 1;
-      let year = updatedAt.getFullYear();
       let title = `Kích hoạt sp ${product.id}`;
       let content = `Sản phẩm ${product.id} của bạn đã được kích hoạt vào lúc ${h}:${m}:${s} ngày ${date}/${month}/${year}.`;
       let sqlNoti = `INSERT INTO notify ( uid, title, content, productId) VALUES (?, ?, ?, ?)`;
@@ -761,17 +770,24 @@ const Product = {
         return;
       }
       let product = products[0];
+      let h = updatedAt.getHours();
+      let m = updatedAt.getMinutes();
+      let s = updatedAt.getSeconds();
+      let date = updatedAt.getDate();
+      let month = updatedAt.getMonth() + 1;
+      let year = updatedAt.getFullYear();
+      let updatedAtString = `"${year}/${month}/${date}"`;
       //Active product
       sql = `update product 
              set status = "ban",admin_id= ?, updatedAt = ?
              where product.id = ?`;
-      result = await conn.query(sql, [idAdmin, updatedAt, idProduct]);
+      result = await conn.query(sql, [idAdmin, updatedAtString, idProduct]);
 
       //Active image
       try {
         await conn.query(
           'update image set status = "ban", updatedAt = ? where productId = ?',
-          [updatedAt, idProduct]
+          [updatedAtString, idProduct]
         );
       } catch (err) {
         console.log(err);
@@ -780,12 +796,6 @@ const Product = {
       await conn.commit();
 
       //create user notify
-      let h = updatedAt.getHours();
-      let m = updatedAt.getMinutes();
-      let s = updatedAt.getSeconds();
-      let date = updatedAt.getDate();
-      let month = updatedAt.getMonth() + 1;
-      let year = updatedAt.getFullYear();
       let title = `Gỡ sản phẩm ${product.id}`;
       let content = `Sản phẩm ${product.id} của bạn đã bị cấm đăng lên vào lúc ${h}:${m}:${s} ngày ${date}/${month}/${year}.`;
       let sqlNoti = `INSERT INTO notify ( uid, title, content, productId) VALUES (?, ?, ?, ?)`;
@@ -1461,11 +1471,16 @@ const Product = {
         res.json(response);
         return;
       }
+      let updatedAt = new Date()
+      let date = updatedAt.getDate();
+      let month = updatedAt.getMonth() + 1;
+      let year = updatedAt.getFullYear();
+      let updatedAtString = `"${year}/${month}/${date}"`;
       conn = await dbs.getConnection();
       await conn.beginTransaction();
       let sql;
       sql = `update comment set status=?, updatedAt=? where id = ?`;
-      await conn.query(sql, [status, new Date(), idComment]);
+      await conn.query(sql, [status, updatedAtString, idComment]);
       await conn.commit();
 
       const response = {
