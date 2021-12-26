@@ -422,30 +422,50 @@ const User = {
       uid,
       username,
       address,
-      gender = null,
+      gender,
       birthday,
-      avatar = null,
+      avatar,
     } = req.body;
     try {
       let updatedAt = new Date();
       conn = await dbs.getConnection();
       await conn.beginTransaction();
+      if(!username && !address && !gender && !birthday && !avatar) {
+        res.json({ status: 1, message: "success"})
+      }
+      let updateString = [];
+      if(username){
+        let string = `username = "${username}"`;
+        updateString.push(string);
+      }
+      if(address){
+        let string = `address = "${address}"`;
+        updateString.push(string);
+      }
+      if(gender){
+        let string = `gender = "${gender}"`;
+        updateString.push(string);
+      }
+      if(birthday){
+        let string = `birthday = "${birthday}"`;
+        updateString.push(string);
+      }
 
+      if(avatar){
+        let string = `avatar = "${avatar}"`;
+        updateString.push(string);
+      }
+      let updateRes = updateString.join();
       let result, response;
       let sql = `update user 
-                 set username = ?, address = ?, gender =?, birthday = ?, avatar = ?, updatedAt = ? 
+                 set ${updateRes},updatedAt = ? 
                  where uid = ?`;
       await conn.query(sql, [
-        username,
-        address,
-        gender,
-        birthday,
-        avatar,
         updatedAt,
         uid,
       ]);
       await conn.commit();
-      response = { status: 1, message: "success" };
+      response = { status: 1, message: "success"};
       res.json({ response });
     
 
