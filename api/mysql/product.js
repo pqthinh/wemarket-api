@@ -507,7 +507,6 @@ const Product = {
       let date = updatedAt.getDate();
       let month = updatedAt.getMonth() + 1 ;
       let year = updatedAt.getFullYear();
-      let updatedAtString = `"${year}/${month}/${date}"`
       //Update product
       sql = `update product
             set name = ?, description = ?, categoryId = ?, price =?, address = ?, quantity = ?, lat = ?, lng = ?, image = ?, updatedAt = ?, tag = ?, status = "pending"
@@ -522,7 +521,7 @@ const Product = {
         lat,
         lng,
         image,
-        updatedAtString,
+        updatedAt,
         tagStr,
         idProduct,
       ]);
@@ -530,7 +529,7 @@ const Product = {
       //update image
       await conn.query(
         "update image set deletedAt = ?, updatedAt = ? where productId = ?",
-        [updatedAtString, updatedAtString, idProduct]
+        [updatedAt, updatedAt, idProduct]
       );
 
       let imgQuery = await conn.query(
@@ -553,8 +552,8 @@ const Product = {
           let resultImg = await conn.query(sql, [
             idProduct,
             img,
-            updatedAtString,
-            updatedAtString,
+            updatedAt,
+            updatedAt,
           ]);
           await conn.commit();
         }
@@ -692,18 +691,17 @@ const Product = {
       let date = updatedAt.getDate();
       let month = updatedAt.getMonth() + 1;
       let year = updatedAt.getFullYear();
-      let updatedAtString = `"${year}/${month}/${date}"`;
       //Active product
       sql = `update product 
              set status = "active",admin_id= ?, updatedAt = ?
              where product.id = ?`;
-      result = await conn.query(sql, [idAdmin, updatedAtString, idProduct]);
+      result = await conn.query(sql, [idAdmin, updatedAt, idProduct]);
 
       //Active image
       try {
         await conn.query(
           'update image set status = "active", updatedAt = ? where productId = ?',
-          [updatedAtString, idProduct]
+          [updatedAt, idProduct]
         );
       } catch (err) {
         console.log(err);
@@ -776,18 +774,17 @@ const Product = {
       let date = updatedAt.getDate();
       let month = updatedAt.getMonth() + 1;
       let year = updatedAt.getFullYear();
-      let updatedAtString = `"${year}/${month}/${date}"`;
       //Active product
       sql = `update product 
              set status = "ban",admin_id= ?, updatedAt = ?
              where product.id = ?`;
-      result = await conn.query(sql, [idAdmin, updatedAtString, idProduct]);
+      result = await conn.query(sql, [idAdmin, updatedAt, idProduct]);
 
       //Active image
       try {
         await conn.query(
           'update image set status = "ban", updatedAt = ? where productId = ?',
-          [updatedAtString, idProduct]
+          [updatedAt, idProduct]
         );
       } catch (err) {
         console.log(err);
@@ -1472,15 +1469,11 @@ const Product = {
         return;
       }
       let updatedAt = new Date()
-      let date = updatedAt.getDate();
-      let month = updatedAt.getMonth() + 1;
-      let year = updatedAt.getFullYear();
-      let updatedAtString = `"${year}/${month}/${date}"`;
       conn = await dbs.getConnection();
       await conn.beginTransaction();
       let sql;
       sql = `update comment set status=?, updatedAt=? where id = ?`;
-      await conn.query(sql, [status, updatedAtString, idComment]);
+      await conn.query(sql, [status, updatedAt, idComment]);
       await conn.commit();
 
       const response = {
