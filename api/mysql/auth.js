@@ -455,15 +455,16 @@ const User = {
         let string = `avatar = "${avatar}"`;
         updateString.push(string);
       }
+      let string = `updatedAt = "${updatedAt}"`;
+      updateString.push(string)
+      let uidString = `uid = "${uid}"`
       let updateRes = updateString.join();
+      
       let result, response;
       let sql = `update user 
-                 set ${updateRes},updatedAt = ? 
-                 where uid = ?`;
-      await conn.query(sql, [
-        updatedAt,
-        uid,
-      ]);
+                 set ${updateRes}
+                 where ${uidString}`;
+      await conn.query(sql);
       await conn.commit();
       response = { status: 1, message: "success"};
       res.json({ response });
