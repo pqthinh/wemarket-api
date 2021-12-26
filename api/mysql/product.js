@@ -949,24 +949,24 @@ const Product = {
       if (maxPrice) {
         product = product.filter((x) => x.price <= maxPrice);
       }
-      if (minQuantity) {
-        product = product.filter((x) => x.quantity >= minQuantity);
-      }
-      if (maxQuantity) {
-        product = product.filter((x) => x.quantity <= maxQuantity);
-      }
-      if (minView) {
-        product = product.filter((x) => x.view >= minView);
-      }
-      if (maxView) {
-        product = product.filter((x) => x.view <= maxPrice);
-      }
-      if (minLike) {
-        product = product.filter((x) => x.like_num >= minLike);
-      }
-      if (maxLike) {
-        product = product.filter((x) => x.like_num <= maxLike);
-      }
+      // if (minQuantity) {
+      //   product = product.filter((x) => x.quantity >= minQuantity);
+      // }
+      // if (maxQuantity) {
+      //   product = product.filter((x) => x.quantity <= maxQuantity);
+      // }
+      // if (minView) {
+      //   product = product.filter((x) => x.view >= minView);
+      // }
+      // if (maxView) {
+      //   product = product.filter((x) => x.view <= maxPrice);
+      // }
+      // if (minLike) {
+      //   product = product.filter((x) => x.like_num >= minLike);
+      // }
+      // if (maxLike) {
+      //   product = product.filter((x) => x.like_num <= maxLike);
+      // }
       //search by distance
       if (lat && lng) {
         let R = 6371; //km
@@ -987,17 +987,20 @@ const Product = {
         if (distance) {
           product = product.filter((p) => p.distance < distance);
         }
-        if (orderByDistance) {
-          if (orderByDistance == "desc") {
-            product = product.sort(function (a, b) {
-              return b.distance - a.distance;
-            });
-          } else {
-            product = product.sort(function (a, b) {
-              return a.distance - b.distance;
-            });
-          }
-        }
+        product = product.sort(function (a, b) {
+          return a.distance - b.distance;
+        });
+        // if (orderByDistance) {
+        //   if (orderByDistance == "desc") {
+        //     product = product.sort(function (a, b) {
+        //       return b.distance - a.distance;
+        //     });
+        //   } else {
+        //     product = product.sort(function (a, b) {
+        //       return a.distance - b.distance;
+        //     });
+        //   }
+        // }
       }
       //sort
       if (orderByDate) {
