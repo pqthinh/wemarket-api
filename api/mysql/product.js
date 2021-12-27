@@ -38,9 +38,9 @@ const Product = {
           let a =
             Math.sin(dLat / 2) * Math.sin(dLat / 2) +
             Math.sin(dLon / 2) *
-            Math.sin(dLon / 2) *
-            Math.cos(lat1) *
-            Math.cos(lat2);
+              Math.sin(dLon / 2) *
+              Math.cos(lat1) *
+              Math.cos(lat2);
           let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
           x.distance = Math.round(R * c * 100) / 100;
         });
@@ -115,9 +115,9 @@ const Product = {
         let a =
           Math.sin(dLat / 2) * Math.sin(dLat / 2) +
           Math.sin(dLon / 2) *
-          Math.sin(dLon / 2) *
-          Math.cos(lat1) *
-          Math.cos(lat2);
+            Math.sin(dLon / 2) *
+            Math.cos(lat1) *
+            Math.cos(lat2);
         let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         product.distance = Math.round(R * c * 100) / 100;
       }
@@ -438,14 +438,15 @@ const Product = {
       name,
       description,
       categoryId,
-      subcategoryId,
       price,
+      uid,
       quantity,
       location = {},
-      image,
+      image = "https://cdn.mobilecity.vn/mobilecity-vn/images/2021/07/iphone-11-pro-max-mat-truoc-sau.jpg",
       images = [],
-      tag,
-      categoryName
+      tag = [],
+      categoryName,
+      username,
     } = req.body;
     let { address, lat, lng } = location;
     let updatedAt = new Date();
@@ -455,32 +456,41 @@ const Product = {
       //validate request
       const validate = {};
 
-      if (images.length > 10) validate.images = "Max length images is 10";
-      //if (!name.trim()) validate.name = "name is require field ";
-      //if (!description) validate.description = "description is require field ";
-      // if (!categoryId) validate.categoryId = "categoryId is require field ";
-      if (price && price < 0) validate.price = "price is invalid ";
+      if (images.length > 8) validate.images = "Max length images is 8";
+      if (!name.trim()) validate.name = "name is require field ";
+      if (!description) validate.description = "description is require field ";
+      if (!categoryId) validate.categoryId = "categoryId is require field ";
+      if (!price || price < 0) validate.price = "price is invalid ";
       if (!categoryName) validate.categoryName = "categoryName is required";
-      //if (!username) validate.username = "username is required";
-      //if (!uid) validate.uid = "uid is required";
-      // if (!location || !address.trim())
-      //   validate.location = "location is invalid ";
-      //if (!image) validate.image = "spotlight image is invalid ";
+      if (!username) validate.username = "username is required";
+      if (!uid) validate.uid = "uid is required";
+      if (!location || !lat || !lng || !address.trim())
+        validate.location = "location is invalid ";
+      if (!image) validate.image = "spotlight image is invalid ";
       if (tag && tag.length > 5) validate.tag = "Tag limit 5";
 
       if (Object.keys(validate).length !== 0) {
         res.json({ status: false, error: validate });
         return;
       }
-
+      let sql, result;
+      let tagStr = tag.toString();
+      //validate user
+      sqlUser = `Select * from user where uid = ?`;
+      let hasUser = await conn.query(sqlUser, [uid]);
+      await conn.commit();
+      if (hasUser[0].length < 1) {
+        res.json({ status: false, error: "User Not Existed" });
+        return;
+      }
       //validate
       let sqlProduct = `select product.*,user.username,user.address AS userAddress,user.email,user.phone,user.avatar, category.name as categoryName, category.icon as categoryIcon 
       from user, product, category 
-      where user.uid=product.uid and product.categoryId=category.id and product.deletedAt is null and product.status = 'pending' and product.id = ?`;
+      where user.uid=product.uid and product.categoryId=category.id and product.deletedAt is null and product.id = ?`;
 
-      let result = await conn.query(sqlProduct, [idProduct]);
+      result = await conn.query(sqlProduct, [idProduct]);
       let products = result[0];
-      if (products.length < 1) {
+      if (products.length < 1 || products[0].uid != uid) {
         const response = {
           status: false,
           message: "Product is not existed",
@@ -490,100 +500,76 @@ const Product = {
       }
       let product = products[0];
 
-      //update
-      let updateString = [];
-      //name
-      let nameProduct = name ? name : product.name;
-      updateString.push(`name = "${nameProduct}"`);
-      //description
-      let descriptionProduct = description ? description : product.description;
-      updateString.push(`description = "${descriptionProduct}"`);
-      //categoryId
-      let categoryIdProduct = categoryId ? categoryId : product.categoryId;
-      updateString.push(`categoryId = "${categoryIdProduct}"`);
-      //subcategory
-      let subcategoryIdProduct = subcategoryId ? subcategoryId : product.subcategoryId;
-      updateString.push(`subcategoryId = "${subcategoryIdProduct}"`);
-      //quantity
-      let quantityProduct = quantity ? quantity : product.quantity;
-      updateString.push(`quantity = "${quantityProduct}"`);
-      //price
-      let priceProduct = price ? price : product.price;
-      updateString.push(`price = "${priceProduct}"`);
-      //image
-      if(image) updateString.push(`image = "${image}"`);
-      //tag
-      let tagProduct = tag ? tag.toString() : product.tag;
-      updateString.push(`tag = "${tagProduct}"`);
-      //address
-      if (lat) updateString.push(`lat = "${lat}"`);
-      if (lng) updateString.push(`lat = "${lng}"`);
-      let addressProduct = address ? address : product.address;
-      updateString.push(`address = "${addressProduct}"`);
-      //updatedAt
+      
       let h = updatedAt.getHours();
       let m = updatedAt.getMinutes();
       let s = updatedAt.getSeconds();
       let date = updatedAt.getDate();
-      let month = updatedAt.getMonth() + 1;
+      let month = updatedAt.getMonth() + 1 ;
       let year = updatedAt.getFullYear();
-      let updatedAtString = `updatedAt = "${year}-${month}-${date} ${h}:${m}:${s}"`;
-      updateString.push(updatedAtString);
-      let idString = `id = "${idProduct}"`
-      let updateRes = updateString.join();
-      let sql;
-
       //Update product
       sql = `update product
-            set ${updateRes}
-            where ${idString}`;
-      result = await conn.query(sql);
+            set name = ?, description = ?, categoryId = ?, price =?, address = ?, quantity = ?, lat = ?, lng = ?, image = ?, updatedAt = ?, tag = ?, status = "pending"
+            where id = ?`;
+      result = await conn.query(sql, [
+        name,
+        description,
+        Number(categoryId),
+        Number(price),
+        address,
+        Number(quantity),
+        lat,
+        lng,
+        image,
+        updatedAt,
+        tagStr,
+        idProduct,
+      ]);
 
-      //update images
-      if (images) {
-        await conn.query(
-          "update image set deletedAt = ?, updatedAt = ? where productId = ?",
-          [updatedAt, updatedAt, idProduct]
-        );
+      //update image
+      await conn.query(
+        "update image set deletedAt = ?, updatedAt = ? where productId = ?",
+        [updatedAt, updatedAt, idProduct]
+      );
 
-        let imgQuery = await conn.query(
-          "Select * from image where productId = ?",
-          [idProduct]
-        );
-        await conn.commit();
-        let imgs = imgQuery[0];
-        for (let img of images) {
-          if (imgs.filter((x) => x.url == img).length > 0) {
-            await conn.query(
-              'update image set deletedAt = Null, status = "pending" where url = ? AND productId = ?',
-              [img, idProduct]
-            );
-            await conn.commit();
-          } else {
-            sql = `INSERT INTO image ( productId, url, status, createdAt, updatedAt) 
-  
-                       VALUES (?, ?, 'pending', ?, ?)`;
-            let resultImg = await conn.query(sql, [
-              idProduct,
-              img,
-              updatedAt,
-              updatedAt,
-            ]);
-            await conn.commit();
-          }
+      let imgQuery = await conn.query(
+        "Select * from image where productId = ?",
+        [idProduct]
+      );
+      await conn.commit();
+      let imgs = imgQuery[0];
+      for (let img of images) {
+        if (imgs.filter((x) => x.url == img).length > 0) {
+          await conn.query(
+            'update image set deletedAt = Null, status = "pending" where url = ? AND productId = ?',
+            [img, idProduct]
+          );
+          await conn.commit();
+        } else {
+          sql = `INSERT INTO image ( productId, url, status, createdAt, updatedAt) 
+
+                     VALUES (?, ?, 'pending', ?, ?)`;
+          let resultImg = await conn.query(sql, [
+            idProduct,
+            img,
+            updatedAt,
+            updatedAt,
+          ]);
+          await conn.commit();
         }
-
       }
 
       //create notify to admin
+      //get user
+      let user = hasUser[0][0];
       let adminQuery = await conn.query(
         `select * from admin where deletedAt is null `
       );
       await conn.commit();
       let admins = adminQuery[0];
       let adminNotis = [];
-      let title = `Sản phẩm ${product.code}`;
-      let content = `Người dùng ${product.username} đã sửa thông tin sản phẩm ${product.code} vào lúc ${h}:${m}:${s} ngày ${date}/${month}/${year}. Sản phẩm này đang chờ được duyệt`;
+      let title = `Người dùng ${user.username} đã sửa thông tin sản phẩm ${product.code}`;
+      let content = `Người dùng ${user.username} đã sửa thông tin sản phẩm ${product.code} vào lúc ${h}:${m}:${s} ngày ${date}/${month}/${year}. Sản phẩm này đang chờ được duyệt`;
       for (let admin of admins) {
         adminNotis.push([admin.id, title, content]);
       }
@@ -598,13 +584,13 @@ const Product = {
         body: {
           // put the partial document under the `doc` key
           doc: {
-            name: nameProduct,
+            name: name,
             id: idProduct,
-            description: descriptionProduct,
-            address: addressProduct,
+            description: description,
+            address: address,
             category: categoryName,
-            tag: tagProduct,
-            username: product.username
+            tag: tagStr,
+            username: username,
           },
         },
       });
@@ -698,7 +684,7 @@ const Product = {
         return;
       }
       let product = products[0];
-
+      
       let h = updatedAt.getHours();
       let m = updatedAt.getMinutes();
       let s = updatedAt.getSeconds();
@@ -999,9 +985,9 @@ const Product = {
           let a =
             Math.sin(dLat / 2) * Math.sin(dLat / 2) +
             Math.sin(dLon / 2) *
-            Math.sin(dLon / 2) *
-            Math.cos(lat1) *
-            Math.cos(lat2);
+              Math.sin(dLon / 2) *
+              Math.cos(lat1) *
+              Math.cos(lat2);
           let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
           x.distance = Math.round(R * c * 100) / 100;
         });
@@ -1536,9 +1522,9 @@ const Product = {
           let a =
             Math.sin(dLat / 2) * Math.sin(dLat / 2) +
             Math.sin(dLon / 2) *
-            Math.sin(dLon / 2) *
-            Math.cos(lat1) *
-            Math.cos(lat2);
+              Math.sin(dLon / 2) *
+              Math.cos(lat1) *
+              Math.cos(lat2);
           let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
           x.distance = Math.round(R * c * 100) / 100;
         });
@@ -1584,9 +1570,9 @@ const Product = {
           let a =
             Math.sin(dLat / 2) * Math.sin(dLat / 2) +
             Math.sin(dLon / 2) *
-            Math.sin(dLon / 2) *
-            Math.cos(lat1) *
-            Math.cos(lat2);
+              Math.sin(dLon / 2) *
+              Math.cos(lat1) *
+              Math.cos(lat2);
           let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
           x.distance = Math.round(R * c * 100) / 100;
         });
