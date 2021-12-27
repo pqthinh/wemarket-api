@@ -352,7 +352,7 @@ const Product = {
       let date = createdAt.getDate();
       let month = createdAt.getMonth() + 1;
       let year = createdAt.getFullYear();
-      let createdAtString = `"${year}/${month}/${date}"`
+      let createdAtString = `"${year}/${month}/${date}"`;
       //create product
       sql = `INSERT INTO product (code, name, description, categoryId, price, status, uid, createdAt, updatedAt, address, quantity, lat, lng, image, tag) VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
       result = await conn.query(sql, [
@@ -500,12 +500,11 @@ const Product = {
       }
       let product = products[0];
 
-      
       let h = updatedAt.getHours();
       let m = updatedAt.getMinutes();
       let s = updatedAt.getSeconds();
       let date = updatedAt.getDate();
-      let month = updatedAt.getMonth() + 1 ;
+      let month = updatedAt.getMonth() + 1;
       let year = updatedAt.getFullYear();
       //Update product
       sql = `update product
@@ -680,7 +679,7 @@ const Product = {
         return;
       }
       let product = products[0];
-      
+
       let h = updatedAt.getHours();
       let m = updatedAt.getMinutes();
       let s = updatedAt.getSeconds();
@@ -859,29 +858,21 @@ const Product = {
       categoryId = [],
       minPrice,
       maxPrice,
-      minQuantity,
-      maxQuantity,
-      maxLike,
-      maxView,
-      minLike,
-      minView,
       orderByDate,
       orderByLike,
       orderByView,
       orderByQuantity,
       orderByPrice,
-      orderByDistance,
       distance,
       lat,
       lng,
     } = req.body;
     try {
+      console.log(req.body);
       //Get all product
       conn = await dbs.getConnection();
       await conn.beginTransaction();
-      let sql,
-        result,
-        error = [];
+      let sql, result;
       sql = `select product.*,user.uid, user.username, user.address AS userAddress, user.email, user.phone, user.avatar, category.name AS categoryName, category.icon as iconCategory
       from category, product, user
       where product.status ="active" and product.deletedAt is null AND user.uid = product.uid AND category.id=product.categoryId`;
@@ -952,25 +943,7 @@ const Product = {
       if (maxPrice) {
         product = product.filter((x) => x.price <= maxPrice);
       }
-      // if (minQuantity) {
-      //   product = product.filter((x) => x.quantity >= minQuantity);
-      // }
-      // if (maxQuantity) {
-      //   product = product.filter((x) => x.quantity <= maxQuantity);
-      // }
-      // if (minView) {
-      //   product = product.filter((x) => x.view >= minView);
-      // }
-      // if (maxView) {
-      //   product = product.filter((x) => x.view <= maxPrice);
-      // }
-      // if (minLike) {
-      //   product = product.filter((x) => x.like_num >= minLike);
-      // }
-      // if (maxLike) {
-      //   product = product.filter((x) => x.like_num <= maxLike);
-      // }
-      //search by distance
+
       if (lat && lng) {
         let R = 6371; //km
         product.forEach((x) => {
@@ -993,17 +966,6 @@ const Product = {
         product = product.sort(function (a, b) {
           return a.distance - b.distance;
         });
-        // if (orderByDistance) {
-        //   if (orderByDistance == "desc") {
-        //     product = product.sort(function (a, b) {
-        //       return b.distance - a.distance;
-        //     });
-        //   } else {
-        //     product = product.sort(function (a, b) {
-        //       return a.distance - b.distance;
-        //     });
-        //   }
-        // }
       }
       //sort
       if (orderByDate) {
@@ -1464,7 +1426,7 @@ const Product = {
         res.json(response);
         return;
       }
-      let updatedAt = new Date()
+      let updatedAt = new Date();
       conn = await dbs.getConnection();
       await conn.beginTransaction();
       let sql;
