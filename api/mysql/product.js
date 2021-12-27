@@ -624,10 +624,6 @@ const Product = {
         return;
       }
 
-      let date = deletedAt.getDate();
-      let month = deletedAt.getMonth() + 1;
-      let year = deletedAt.getFullYear();
-      let deletedAtString = `"${year}/${month}/${date}"`;
       //delete
       sql = `update product 
              set deletedAt = ?, updatedAt = ?
@@ -638,7 +634,7 @@ const Product = {
       //delete image
       await conn.query(
         "update image set deletedAt = ?, updatedAt = ? where productId = ?",
-        [deletedAtString, deletedAtString, idProduct]
+        [deletedAt, deletedAt, idProduct]
       );
       await conn.commit();
 
