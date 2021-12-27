@@ -432,6 +432,7 @@ const User = {
       await conn.beginTransaction();
       if(!username && !address && !gender && !birthday && !avatar) {
         res.json({ status: 1, message: "success"})
+        return;
       }
       let updateString = [];
       if(username){
