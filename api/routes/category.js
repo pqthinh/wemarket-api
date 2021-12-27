@@ -133,7 +133,7 @@ module.exports = (app) => {
 
   /**
    * @swagger
-   * /product/delete:
+   * /subcategory/delete:
    *   post:
    *     description: delete subcategory
    *     parameters:
