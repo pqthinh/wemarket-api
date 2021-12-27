@@ -47,7 +47,7 @@ module.exports = (app) => {
 
   /**
    * @swagger
-   * /admin/users:
+   * /admin/user:
    *   post:
    *     description: filter user
    *     parameters:
@@ -61,7 +61,7 @@ module.exports = (app) => {
    *       200:
    *         description: Success
    */
-  app.get("/admin/users", user.adminFilterUser);
+  app.post("/admin/user", user.adminFilterUser);
 
   /**
    * @swagger
