@@ -824,7 +824,7 @@ const Product = {
   },
   getAllPostOfUser: async (req, res, next) => {
     let conn,
-      { limit = 50, offset = 0, uid } = req.body;
+      { limit = 20, offset = 0, uid } = req.body;
     try {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
@@ -835,13 +835,13 @@ const Product = {
       result = await conn.query(sql, [uid]);
       await conn.commit();
       let products = result[0];
-      // let skip = Number(offset > 0 ? offset : 0) * Number(limit);
-      // let productResult = products.slice(skip, skip + Number(limit));
+      let skip = Number(offset > 0 ? offset : 0) * Number(limit);
+      let productResult = products.slice(skip, skip + Number(limit));
 
       const response = {
         total: products.length,
-        //page: Number(offset) + 1,
-        result: products,
+        page: Number(offset) + 1,
+        result: productResult,
       };
       res.json(response);
     } catch (err) {

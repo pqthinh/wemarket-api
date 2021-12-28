@@ -5,17 +5,11 @@ module.exports = (app) => {
   /**
    * @swagger
    * /order/list-of-seller:
-   *   get:
+   *   post:
    *     description: get all order of seller
    *     parameters:
-   *      - name: limit
-   *        in: query
-   *      - name: offset
-   *        in: query
    *      - name: uid
    *        in: body
-   *      - name: idProduct
-   *        in: query
    *      - name: orderByDate
    *        in: body
    *      - name: orderByQuantity
@@ -27,21 +21,15 @@ module.exports = (app) => {
    *         description: Success
    *
    */
-  app.get("/order/list-of-seller", order.getListOrderOfSeller);
+  app.post("/order/list-of-seller", order.getListOrderOfSeller);
   /**
    * @swagger
    * /order/list-of-buyer:
-   *   get:
+   *   post:
    *     description: get all order of buyer
    *     parameters:
-   *      - name: limit
-   *        in: query
-   *      - name: offset
-   *        in: query
    *      - name: uid
    *        in: body
-   *      - name: idProduct
-   *        in: query
    *      - name: orderByDate
    *        in: body
    *      - name: orderByQuantity
@@ -53,20 +41,14 @@ module.exports = (app) => {
    *         description: Success
    *
    */
-  app.get("/order/list-of-buyer", order.getListOrderOfBuyer);
-   /**
+  app.post("/order/list-of-buyer", order.getListOrderOfBuyer);
+  /**
    * @swagger
    * /order/list-pending:
-   *   get:
+   *   post:
    *     description: get all pending order of buyer
    *     parameters:
-   *      - name: limit
-   *        in: query
-   *      - name: offset
-   *        in: query
    *      - name: uid
-   *        in: query
-   *      - name: idProduct
    *        in: query
    *      - name: orderByDate
    *        in: body
@@ -79,7 +61,7 @@ module.exports = (app) => {
    *         description: Success
    *
    */
-    app.get("/order/list-pending", order.getListPendingOrderOfBuyer);
+  app.post("/order/list-pending", order.getListPendingOrderOfBuyer);
 
   /**
    * @swagger

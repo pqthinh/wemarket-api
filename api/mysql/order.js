@@ -2,8 +2,7 @@ const dbs = require("./dbs");
 
 const Order = {
   getListOrderOfSeller: async (req, res, next) => {
-    let conn,
-      { limit = 20, offset = 0, idProduct } = req.query;
+    let conn;
     let { orderByDate, orderByQuantity, orderByStatus, uid } = req.body;
     try {
       conn = await dbs.getConnection();
@@ -26,12 +25,7 @@ const Order = {
       result = await conn.query(sql, [uid]);
       await conn.commit();
       let order = result[0];
-      let skip = Number(offset > 0 ? offset : 0) * Number(limit);
 
-      //filter
-      if (idProduct) {
-        order = order.filter((x) => x.product_id == idProduct);
-      }
       if (orderByDate) {
         if (orderByDate == "desc") {
           order = order.sort(function (a, b) {
@@ -66,12 +60,11 @@ const Order = {
           });
         }
       }
-      let orderRes = order.slice(skip, skip + Number(limit));
 
       const response = {
+        status: 1,
         total: order.length,
-        page: Number(offset) + 1,
-        result: orderRes,
+        result: order,
       };
       res.json(response);
     } catch (err) {
@@ -82,8 +75,7 @@ const Order = {
     }
   },
   getListOrderOfBuyer: async (req, res, next) => {
-    let conn,
-      { limit = 20, offset = 0, idProduct } = req.query;
+    let conn;
     let { orderByDate, orderByQuantity, orderByStatus, uid } = req.body;
     try {
       conn = await dbs.getConnection();
@@ -106,12 +98,7 @@ const Order = {
       result = await conn.query(sql, [uid]);
       await conn.commit();
       let order = result[0];
-      let skip = Number(offset > 0 ? offset : 0) * Number(limit);
 
-      //filter
-      if (idProduct) {
-        order = order.filter((x) => x.product_id == idProduct);
-      }
       if (orderByDate) {
         if (orderByDate == "desc") {
           order = order.sort(function (a, b) {
@@ -146,12 +133,11 @@ const Order = {
           });
         }
       }
-      let orderRes = order.slice(skip, skip + Number(limit));
 
       const response = {
+        status: 1,
         total: order.length,
-        page: Number(offset) + 1,
-        result: orderRes,
+        result: order,
       };
       res.json(response);
     } catch (err) {
@@ -162,9 +148,8 @@ const Order = {
     }
   },
   getListPendingOrderOfBuyer: async (req, res, next) => {
-    let conn,
-      { limit = 20, offset = 0, idProduct } = req.query;
-    let { orderByDate, orderByQuantity, orderByStatus,uid } = req.body;
+    let conn;
+    let { orderByDate, orderByQuantity, orderByStatus, uid } = req.body;
     try {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
@@ -186,12 +171,7 @@ const Order = {
       result = await conn.query(sql, [uid]);
       await conn.commit();
       let order = result[0];
-      let skip = Number(offset > 0 ? offset : 0) * Number(limit);
 
-      //filter
-      if (idProduct) {
-        order = order.filter((x) => x.product_id == idProduct);
-      }
       if (orderByDate) {
         if (orderByDate == "desc") {
           order = order.sort(function (a, b) {
@@ -226,12 +206,11 @@ const Order = {
           });
         }
       }
-      let orderRes = order.slice(skip, skip + Number(limit));
 
       const response = {
+        status: 1,
         total: order.length,
-        page: Number(offset) + 1,
-        result: orderRes,
+        result: order,
       };
       res.json(response);
     } catch (err) {
