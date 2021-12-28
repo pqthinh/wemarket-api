@@ -13,7 +13,7 @@ module.exports = (app) => {
    *      - name: offset
    *        in: query
    *      - name: uid
-   *        in: query
+   *        in: body
    *      - name: idProduct
    *        in: query
    *      - name: orderByDate
@@ -39,7 +39,7 @@ module.exports = (app) => {
    *      - name: offset
    *        in: query
    *      - name: uid
-   *        in: query
+   *        in: body
    *      - name: idProduct
    *        in: query
    *      - name: orderByDate

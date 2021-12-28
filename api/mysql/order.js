@@ -3,8 +3,8 @@ const dbs = require("./dbs");
 const Order = {
   getListOrderOfSeller: async (req, res, next) => {
     let conn,
-      { limit = 20, offset = 0, uid, idProduct } = req.query;
-    let { orderByDate, orderByQuantity, orderByStatus } = req.body;
+      { limit = 20, offset = 0, idProduct } = req.query;
+    let { orderByDate, orderByQuantity, orderByStatus, uid } = req.body;
     try {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
@@ -83,8 +83,8 @@ const Order = {
   },
   getListOrderOfBuyer: async (req, res, next) => {
     let conn,
-      { limit = 20, offset = 0, idProduct, uid } = req.query;
-    let { orderByDate, orderByQuantity, orderByStatus } = req.body;
+      { limit = 20, offset = 0, idProduct } = req.query;
+    let { orderByDate, orderByQuantity, orderByStatus, uid } = req.body;
     try {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
