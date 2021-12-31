@@ -351,7 +351,7 @@ const Product = {
       let date = createdAt.getDate();
       let month = createdAt.getMonth() + 1;
       let year = createdAt.getFullYear();
-      let createdAtString = `"${year}/${month}/${date}"`;
+      let createdAtString = `${year}/${month}/${date}`;
       //create product
       sql = `INSERT INTO product (code, name, description, categoryId, price, status, uid, createdAt, updatedAt, address, quantity, lat, lng, image, tag) VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
       result = await conn.query(sql, [
@@ -404,7 +404,7 @@ const Product = {
       let titleNotifyUser = "Đang chờ kiểm duyệt",
         contentNotifyUser = `Bài đăng ${idProductAfterCreate} của bạn đang chờ kiểm duyệt`;
       await conn.query(
-        `INSERT INTO admin_notify ( uid, productId,title, content) VALUES ?`,
+        `INSERT INTO notify ( uid, productId,title, content) VALUES (?, ?, ?, ?)`,
         [uid, idProductAfterCreate, titleNotifyUser, contentNotifyUser]
       );
 
