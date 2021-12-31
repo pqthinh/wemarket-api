@@ -219,6 +219,21 @@ module.exports = (app) => {
 
   /**
    * @swagger
+   * /product/relative/:idProduct:
+   *   post:
+   *     description: get all post relative with current product
+   *     parameters:
+   *      - name: idProduct
+   *        in: query
+   *     responses:
+   *       200:
+   *         description: Success
+   *
+   */
+  app.get("/product/relative/:idProduct", product.getProductRelative);
+
+  /**
+   * @swagger
    * /common/product/filter:
    *   post:
    *     description: get all post by filter

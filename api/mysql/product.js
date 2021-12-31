@@ -297,7 +297,6 @@ const Product = {
   },
   createProduct: async (req, res, next) => {
     let conn;
-    console.log(req.body);
     try {
       let {
         title,
@@ -401,6 +400,14 @@ const Product = {
       }
       let sqlNoti = `INSERT INTO admin_notify ( admin_id, title, content) VALUES ?`;
       await conn.query(sqlNoti, [adminNotis]);
+
+      let titleNotifyUser = "Đang chờ kiểm duyệt",
+        contentNotifyUser = `Bài đăng ${idProductAfterCreate} của bạn đang chờ kiểm duyệt`;
+      await conn.query(
+        `INSERT INTO admin_notify ( uid, productId,title, content) VALUES ?`,
+        [uid, idProductAfterCreate, titleNotifyUser, contentNotifyUser]
+      );
+
       await conn.commit();
 
       //create document in elasticsearch
@@ -1616,6 +1623,39 @@ const Product = {
         total: comments.length,
         page: Number(offset) + 1,
         result: commentResult,
+      };
+
+      res.json(response);
+    } catch (err) {
+      await conn.rollback();
+      next(err);
+    } finally {
+      await conn.release();
+    }
+  },
+  getProductRelative: async (req, res, next) => {
+    let conn,
+      { idProduct } = req.params;
+    try {
+      conn = await dbs.getConnection();
+      await conn.beginTransaction();
+      let resultProduct = await conn.query("select * from product where id=?", [
+        idProduct,
+      ]);
+      await conn.commit();
+      let product = resultProduct[0][0];
+      if (!product || !product.categoryId) {
+        res.json({ status: 0, message: "Product not exist", result: [] });
+        next();
+      }
+      const result = await conn.query(
+        "select user.*, product.* from user, product where product.categoryId =? order by product.id desc limit 20 ",
+        [product?.categoryId]
+      );
+
+      const response = {
+        status: 1,
+        result: result[0],
       };
 
       res.json(response);

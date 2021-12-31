@@ -99,8 +99,8 @@ module.exports = (app) => {
 
   /**
    * @swagger
-   * /common/subcategory/get:
-   *   post:
+   * /common/subcategory/get/:idSubCategory:
+   *   get:
    *     description: get subcategory by id
    *     parameters:
    *       - name : idSubCategory
