@@ -314,17 +314,17 @@ const Order = {
   },
   BuyerCreateOrder: async (req, res, next) => {
     let conn;
-    let { idProduct, uid } = req.body;
+    let { productId, uid } = req.body;
     let createdAt = new Date();
     try {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
-      let sql, result;
+      let sql;
       //validate
-      if (!uid || !idProduct) {
+      if (!uid || !productId) {
         const response = {
           status: false,
-          message: "uid and idProduct is required",
+          message: "uid and productId is required",
         };
         res.json(response);
         return;
@@ -333,10 +333,10 @@ const Order = {
       let productSql = `select product.*,user.username,user.address AS userAddress,user.email,user.phone,user.avatar 
             from user, product
             where product.status ="active" and user.uid=product.uid and product.deletedAt is null and product.id = ?`;
-      let query = await conn.query(productSql, [idProduct]);
+      let query = await conn.query(productSql, [productId]);
       await conn.commit();
       let products = query[0];
-      if (products.length < 0) {
+      if (products.length == 0) {
         const response = {
           status: false,
           message: "Product is not existed",
@@ -357,9 +357,20 @@ const Order = {
       }
       let user = hasUser[0][0];
 
+      // check order exits
+      let hasOrder = await conn.query(
+        "select * from order_product where uid=?, product_id=?",
+        [uid, productId]
+      );
+      await conn.commit();
+      if (hasOrder[0].length < 1) {
+        res.json({ error: "Order exited", status: 0 });
+        return;
+      }
+
       //create order
       sql = `INSERT INTO order_product (uid, product_id, createdAt, updatedAt, status) VALUES (?, ?, ?, ?, "pending")`;
-      result = await conn.query(sql, [uid, idProduct, createdAt, createdAt]);
+      result = await conn.query(sql, [uid, productId, createdAt, createdAt]);
       await conn.commit();
 
       //create notify
@@ -369,10 +380,10 @@ const Order = {
       let date = createdAt.getDate();
       let month = createdAt.getMonth() + 1;
       let year = createdAt.getFullYear();
-      let title = `Yêu cầu đặt hàng ${product.code}`;
-      let content = `Người dùng ${user.username} đã yêu cầu mua sản phẩm ${product.code} vào lúc ${h}:${m}:${s} ngày ${date}/${month}/${year}. Yêu cầu này đang chờ được chấp nhận`;
-      let sqlNoti = `INSERT INTO notify ( uid, title, content) VALUES (?, ?, ?)`;
-      await conn.query(sqlNoti, [product.uid, title, content]);
+      let title = `Yêu cầu đặt hàng ${product.id}`;
+      let content = `Người dùng ${user.username} đã yêu cầu mua sản phẩm ${product.id} vào lúc ${h}:${m}:${s} ngày ${date}/${month}/${year}. Yêu cầu này đang chờ được chấp nhận`;
+      let sqlNoti = `INSERT INTO notify ( uid,productId, title, content) VALUES (?,?, ?, ?)`;
+      await conn.query(sqlNoti, [product.uid, productId, title, content]);
       await conn.commit();
 
       const response = {

@@ -76,7 +76,6 @@ const Product = {
   getProductDetail: async (req, res, next) => {
     let conn;
     let { idProduct, uid, lat, lng } = req.body;
-
     try {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
@@ -748,7 +747,6 @@ const Product = {
   },
   adminBanPost: async (req, res, next) => {
     let { idProduct, idAdmin } = req.body;
-    console.log(idProduct, idAdmin);
     let updatedAt = new Date();
     try {
       conn = await dbs.getConnection();
@@ -875,7 +873,6 @@ const Product = {
       lng,
     } = req.body;
     try {
-      console.log(req.body);
       //Get all product
       conn = await dbs.getConnection();
       await conn.beginTransaction();
@@ -1054,7 +1051,6 @@ const Product = {
       offset = 0,
     } = req.body;
     try {
-      console.log(sort, type);
       //Get all product
       conn = await dbs.getConnection();
       await conn.beginTransaction();
@@ -1566,7 +1562,7 @@ const Product = {
     try {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
-      let sql, result, count, total;
+      let sql, result;
       //get subcategory id
       sql = `select * from product where id = ?`;
       result = await conn.query(sql, [idProduct]);
@@ -1639,9 +1635,10 @@ const Product = {
     try {
       conn = await dbs.getConnection();
       await conn.beginTransaction();
-      let resultProduct = await conn.query("select * from product where id=?", [
-        idProduct,
-      ]);
+      let resultProduct = await conn.query(
+        "select * from product where id=? and deletedAt is null",
+        [idProduct]
+      );
       await conn.commit();
       let product = resultProduct[0][0];
       if (!product || !product.categoryId) {
