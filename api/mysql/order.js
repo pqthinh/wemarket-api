@@ -330,9 +330,7 @@ const Order = {
         return;
       }
       //validate product
-      let productSql = `select product.*,user.username,user.address AS userAddress,user.email,user.phone,user.avatar 
-            from user, product
-            where product.status ="active" and user.uid=product.uid and product.deletedAt is null and product.id = ?`;
+      let productSql = `select product.* from product where product.status ="active" and product.deletedAt is null and product.id = ?`;
       let query = await conn.query(productSql, [productId]);
       await conn.commit();
       let products = query[0];
@@ -341,6 +339,7 @@ const Order = {
           status: false,
           message: "Product is not existed",
         };
+        response;
         res.json(response);
         return;
       }
@@ -359,11 +358,11 @@ const Order = {
 
       // check order exits
       let hasOrder = await conn.query(
-        "select * from order_product where uid=?, product_id=?",
+        "select * from order_product where uid=? and product_id=?",
         [uid, productId]
       );
       await conn.commit();
-      if (hasOrder[0].length < 1) {
+      if (hasOrder[0].length > 1) {
         res.json({ error: "Order exited", status: 0 });
         return;
       }
@@ -386,11 +385,11 @@ const Order = {
       await conn.query(sqlNoti, [product.uid, productId, title, content]);
       await conn.commit();
 
-      const response = {
+      const response0 = {
         status: true,
         message: "success",
       };
-      res.json(response);
+      res.json(response0);
     } catch (err) {
       await conn.rollback();
       next(err);
