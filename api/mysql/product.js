@@ -836,7 +836,8 @@ const Product = {
       let sql, result;
       sql = `select product.*,user.username,user.address AS userAddress,user.email,user.phone,user.avatar, category.name as categoryName, category.icon as categoryIcon 
       from user, product, category 
-      where product.deletedAt is null and user.uid=product.uid and product.categoryId=category.id and product.uid = ?`;
+      where product.deletedAt is null and user.uid=product.uid and product.categoryId=category.id and product.uid = ?
+      order by product.createdAt DESC`;
       result = await conn.query(sql, [uid]);
       await conn.commit();
       let products = result[0];
