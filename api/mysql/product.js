@@ -896,21 +896,21 @@ const Product = {
                     name: search.trim(),
                   },
                 },
-                {
-                  match: {
-                    description: search.trim(),
-                  },
-                },
-                {
-                  match: {
-                    address: search.trim(),
-                  },
-                },
-                {
-                  match: {
-                    username: search.trim(),
-                  },
-                },
+                // {
+                //   match: {
+                //     description: search.trim(),
+                //   },
+                // },
+                // {
+                //   match: {
+                //     address: search.trim(),
+                //   },
+                // },
+                // {
+                //   match: {
+                //     username: search.trim(),
+                //   },
+                // },
                 {
                   match: {
                     category: search.trim(),
