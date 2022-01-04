@@ -1646,8 +1646,10 @@ const Product = {
         next();
       }
       const result = await conn.query(
-        "select user.*, product.* from user, product where product.categoryId =? order by product.id desc limit 20 ",
-        [product?.categoryId]
+        `select user.*, product.* from user, product 
+        where product.uid = user.uid and product.status = 'active' and product.deletedAt is null and product.categoryId = ?
+        order by product.id desc limit 20`,
+        [product.categoryId]
       );
 
       const response = {

@@ -18,6 +18,7 @@ const History = {
         status: true,
         message: "Get list list product recent success",
         data: result[0],
+        length: result[0].length
       };
       res.json(response);
     } catch (err) {
