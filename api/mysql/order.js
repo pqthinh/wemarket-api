@@ -645,7 +645,7 @@ const Order = {
   },
   BuyerDeleteOrder: async (req, res, next) => {
     let conn,
-      { idOrder, uid } = req.query;
+      { idOrder } = req.body;
     let deletedAt = new Date();
     try {
       conn = await dbs.getConnection();
@@ -655,8 +655,8 @@ const Order = {
       //delete
       sql = `update order_product 
             set deletedAt = ?, updatedAt = ?
-            where id = ? AND uid = ?`;
-      result = await conn.query(sql, [deletedAt, deletedAt, idOrder, uid]);
+            where id = ?`;
+      result = await conn.query(sql, [deletedAt, deletedAt, idOrder]);
       await conn.commit();
 
       const response = {

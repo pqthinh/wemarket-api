@@ -120,8 +120,6 @@ module.exports = (app) => {
    *     parameters:
    *      - name: idOrder
    *        in : body
-   *      - name: uid
-   *        in : body
    *     responses:
    *       200:
    *         description: Success
