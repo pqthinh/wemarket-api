@@ -10,7 +10,14 @@ const History = {
       await conn.beginTransaction();
 
       const result = await conn.query(
-        `select DISTINCT(product_seen_recent.productId), product.*, user.* from product, user, product_seen_recent where product_seen_recent.uid=? and product_seen_recent.productId=product.id and product_seen_recent.uid= user.uid`,
+        `select p1.productId, product.*, user.* 
+        from (SELECT  Max(psr.createAt), psr.uid, psr.productId
+        FROM product_seen_recent psr
+        where psr.uid = ?
+        group by psr.productId
+        order by Max(psr.createAt) DESC
+             ) AS p1, product, user
+        where p1.productId=product.id and p1.uid= user.uid`,
         [uid]
       );
 
